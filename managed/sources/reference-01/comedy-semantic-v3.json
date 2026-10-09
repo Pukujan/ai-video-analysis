@@ -797,7 +797,8 @@
       "id": "P09",
       "name": "Humanize AI and objects",
       "trigger": "NPC behaves oddly or loot item name has a double meaning",
-      "rule": "Give an enemy/object mundane personality, existential worries or occupational motives.",      "examples": [
+      "rule": "Give an enemy/object mundane personality, existential worries or occupational motives.",
+      "examples": [
         "guard attacks boxes",
         "Deep Battle Axe is misunderstood"
       ],

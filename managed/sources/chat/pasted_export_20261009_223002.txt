@@ -797,7 +797,8 @@ A stronger behavioral annotation would look like:
     "initial_attitude": "dismissive",
     "new_experience": "unexpected enjoyment",
     "final_attitude": "enthusiastic"
-  },  "speech_behavior": {
+  },
+  "speech_behavior": {
     "opening_move": "rhetorical_mockery",
     "development": "physical_experience_changes_opinion",
     "payoff": "spontaneous_seeming_reversal",
@@ -1133,3 +1134,4 @@ A basic AI comedy editor asks, "What joke should I put here?"
 Ours should first ask, "What would this particular character genuinely think, feel, notice, misunderstand, or say in this situation—and is saying anything at all the best choice?"
 
 That decision should drive the dialogue, vocal performance, music, and cuts. The data model makes those decisions explainable and testable, but the quality of the resulting human-like behavior still has to be proven through listening and evaluation.
+

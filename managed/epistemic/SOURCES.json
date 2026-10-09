@@ -1,0 +1,88 @@
+{
+  "schema_version": "1.0.0",
+  "created_utc": "2026-10-09",
+  "repo": "Pukujan/ai-video-analysis",
+  "visibility": "public",
+  "no_additional_redaction": true,
+  "raw_sources": [
+    {
+      "id": "chat-export-20261009",
+      "path": "managed/sources/chat/pasted_export_20261009_223002.txt",
+      "sha256": "b68452fc1c2f168ab39731a0d12778cb16fbdf1e186f83066e99876a7e2502b1",
+      "bytes": 42777,
+      "format": "text/plain, CRLF",
+      "provenance": "user-attached pasted chat export",
+      "scope": "later discussion beginning with video omni model question",
+      "fidelity": "byte-identical"
+    },
+    {
+      "id": "reference01-video",
+      "path": null,
+      "name": "Here-Comes-the-SnapYT.App.mp4",
+      "sha256": "3c06c4761b4513f243e66d9dd24741f384b500a09bb8e235ade9e3423c6f2726",
+      "bytes": 47625638,
+      "fidelity": "not uploaded to GitHub, only hash and metadata recorded",
+      "reason": "request centered on transcript and chat text, source is a 46 MB third-party video"
+    },
+    {
+      "id": "reference01-transcript",
+      "path": "managed/sources/reference-01/user-provided-timestamped-transcript.txt",
+      "provenance": "copied from user message in this conversation",
+      "fidelity": "manual reproduction preserving supplied words, labels and censor markers; independent byte hash of original user message not available"
+    },
+    {
+      "id": "early-user-turns",
+      "path": "managed/sources/chat/early-user-turns.md",
+      "fidelity": "user messages transcribed from accessible chat; long transcript stored separately"
+    },
+    {
+      "id": "early-assistant-recap",
+      "path": "managed/sources/chat/assistant-recap-pre-export.md",
+      "fidelity": "CURATED_RECONSTRUCTION, not verbatim"
+    }
+  ],
+  "historical_analyses": [
+    {
+      "path": "managed/sources/reference-01/analysis-v1.md",
+      "sha256": "66291c8e615e89ed38c05e51a86e4d1f760808fc0e079e58513eb814e88b718c",
+      "fidelity": "byte-identical",
+      "status": "historical model-derived output, not ground truth"
+    },
+    {
+      "path": "managed/sources/reference-01/editing-dna-v1.json",
+      "sha256": "4c46230eddba04ec4d0978a62722ad98aba12b5d49746245f4112eae5fca7652",
+      "fidelity": "byte-identical",
+      "status": "historical model-derived output, not ground truth"
+    },
+    {
+      "path": "managed/sources/reference-01/comedy-audio-v2.md",
+      "sha256": "52d7a253c2ae1b9b1284347f1c1c7f61d3bb6616ee1b1209c2d3d35837ad5ee6",
+      "fidelity": "byte-identical",
+      "status": "historical model-derived output, not ground truth"
+    },
+    {
+      "path": "managed/sources/reference-01/comedy-audio-v2.json",
+      "sha256": "c91fe211e96a865d6e71e10c1780fa27fefb4b9242cdfb0f7fcd8d99890fc11e",
+      "fidelity": "byte-identical",
+      "status": "historical model-derived output, not ground truth"
+    },
+    {
+      "path": "managed/sources/reference-01/comedy-semantic-v3.md",
+      "sha256": "313b6296cbd1f3d50649314d651ff74a16ebcd2e5be45dce364aaa456a1803e5",
+      "fidelity": "byte-identical",
+      "status": "historical model-derived output, not ground truth"
+    },
+    {
+      "path": "managed/sources/reference-01/comedy-semantic-v3.json",
+      "sha256": "86e936025d9f219cfa95607062e274f0c409d46204d3eaccc89bd9bab006df52",
+      "fidelity": "byte-identical",
+      "status": "historical model-derived output, not ground truth"
+    }
+  ],
+  "source_limitations": [
+    "Conversation export starts midway through the chat; earlier assistant replies are not archived verbatim.",
+    "Raw video, generated screenshots, and extracted soundtrack are not committed to GitHub.",
+    "Transcript already contains censored placeholders and ASR errors as originally supplied.",
+    "Future chat messages are not automatically exported or committed."
+  ]
+}

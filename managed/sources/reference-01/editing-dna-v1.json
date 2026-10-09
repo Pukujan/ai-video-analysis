@@ -1,0 +1,104 @@
+{
+  "schema_version": "0.1.0",
+  "reference_id": "ref_01",
+  "reference_title": "Here Comes the Snap",
+  "source_file": "Here-Comes-the-SnapYT.App.mp4",
+  "media_metadata": {
+    "duration_seconds": 564.297,
+    "video": {"width": 640, "height": 360, "fps": 29.97, "codec": "h264"},
+    "audio": {"channels": 2, "codec": "aac", "sample_rate_hz": 44100},
+    "file_size_approx_mb": 46
+  },
+  "analysis_provenance": {
+    "visual_method": "Temporal contact sheets sampled every 6 seconds; close inspection around major discontinuities; FFmpeg scene-score candidate detection at threshold 0.24",
+    "audio_method": "Confirmed audio stream and ran automatic silence detection; no speech transcription or semantic music identification performed",
+    "scope": "First-pass visual editing-pattern and narrative-mechanism analysis, not an exhaustive frame-by-frame edit decision list",
+    "timestamp_accuracy": "Approximate except machine-detected scene candidate boundaries",
+    "do_not_infer": ["actual speaker identity", "narrator delivery style", "specific background music", "exact number of editorial cuts from scene-score threshold"]
+  },
+  "style_profile": {
+    "primary_visual_format": "Mostly continuous third-person action-RPG gameplay",
+    "overall_editing_style": "Continuity-forward let's-play with sparse, conspicuous graphical comedy interruptions",
+    "pacing": "Extended exploration/combat stretches; special interruptions stand out against minimally altered footage",
+    "running_visual_device": "Small persistent skull/death counter in upper-right; observed values 13 to 16",
+    "recurring_transition_device": "Retro monochrome PLEASE STAND BY interruption, observed three times",
+    "punctuation_device": "Short oversized numeric/formula-like text overlay around 05:36",
+    "ending": "Distinct orange branded subscribe/end card from about 08:49 through end",
+    "humor_mechanism_hypotheses": [
+      "Repeated callbacks through visually persistent loss counter",
+      "Abrupt nostalgic broadcast-interruption card as comedic punctuation",
+      "Occasional scale mismatch between ordinary gameplay and exaggerated overlay"
+    ],
+    "music_characteristics": "Not assessed reliably",
+    "sfx_characteristics": "Not assessed reliably",
+    "voice_characteristics": "Not assessed reliably"
+  },
+  "timeline_observations": [
+    {"start_s": 0, "end_s": 10.58, "event": "In-progress gameplay outdoor exploration/combat, persistent counter around 13", "confidence": "high", "evidence": "Visual frames"},
+    {"start_s": 10.58, "end_s": 12.5, "event": "Broadcast-style PLEASE STAND BY interruption and brief dark transition", "confidence": "high", "evidence": "Frames and scene-score boundaries around 10.58 and 11.75"},
+    {"start_s": 12.5, "end_s": 213.68, "event": "Long gameplay/exploration/combat sequences; death counter remains visible", "confidence": "high", "evidence": "Six-second contact sheet samples"},
+    {"start_s": 213.68, "end_s": 214.31, "event": "Second PLEASE STAND BY interruption", "confidence": "high", "evidence": "Frame inspection and abrupt scene-score boundaries"},
+    {"start_s": 274, "end_s": 278, "event": "Death counter progresses from roughly 13 to 14", "confidence": "medium", "evidence": "Visual samples around 04:30–04:42"},
+    {"start_s": 335, "end_s": 339, "event": "Large displayed numeric/division overlay, including 10,000,000 and a division symbol", "confidence": "high", "evidence": "Focused frame inspection around 05:36–05:37"},
+    {"start_s": 351, "end_s": 355, "event": "Counter transitions to about 15", "confidence": "medium", "evidence": "Contact sheet observations"},
+    {"start_s": 428, "end_s": 438, "event": "Counter visible as 16; gameplay features burning barricades and death-related sequence", "confidence": "medium", "evidence": "Contact sheet and focused stills"},
+    {"start_s": 438, "end_s": 439, "event": "YOU DIED screen visible", "confidence": "high", "evidence": "Frame around 07:19"},
+    {"start_s": 441.27, "end_s": 441.91, "event": "Third PLEASE STAND BY interruption", "confidence": "high", "evidence": "Visual still at 07:21.40 and scene-score boundaries"},
+    {"start_s": 528.63, "end_s": 564.3, "event": "Hard transition to orange subscribe/end-screen template, with two framed video-preview windows", "confidence": "high", "evidence": "Scene-score boundary and visual sampling across outro"}
+  ],
+  "candidate_scene_change_times_s": [10.577, 11.745, 93.360, 139.773, 210.110, 213.680, 214.314, 254.788, 255.822, 277.611, 304.337, 340.607, 419.686, 441.274, 441.908, 476.009, 528.628],
+  "scene_candidate_caveat": "Some candidates are gameplay camera shifts, bright effects or motion, NOT editing cuts",
+  "audio_observations": {
+    "confirmed_audio_present": true,
+    "detected_very_quiet_intervals_threshold_minus_40db_min_0_25s": [
+      {"start_s": 11.815, "end_s": 12.515},
+      {"start_s": 517.248, "end_s": 517.755}
+    ],
+    "qualitative_speech_music_sfx": "unverified"
+  },
+  "transferable_patterns": [
+    {
+      "id": "gameplay_continuity_with_sparse_punctuation",
+      "trigger": "An extended stretch of legible gameplay where the player is exploring or building toward a consequence",
+      "strategy": "Keep gameplay visible long enough for viewer comprehension; interrupt only with purposeful edits",
+      "avoid": "Automatic cuts solely to hit an arbitrary high cut rate",
+      "confidence": "high"
+    },
+    {
+      "id": "persistent_failure_counter",
+      "trigger": "Clearly recognized repeated death/failure/event across a session",
+      "strategy": "Track count with a small consistent overlay; increment on verified event; treat the count as an accumulating running joke",
+      "avoid": "Copying the reference creator's unique graphical assets or counting uncertain events",
+      "confidence": "high"
+    },
+    {
+      "id": "callback_interstitial",
+      "trigger": "Well-timed abrupt failure, reset, or comic transition",
+      "strategy": "Insert a brief original faux-broadcast-interruption bumper; recurring visual treatment increases familiarity",
+      "duration_s_example_range": [0.6, 1.2],
+      "avoid": "Overusing an interruption or reusing the exact branded/third-party screen",
+      "confidence": "high"
+    },
+    {
+      "id": "oversized_math_graphic",
+      "trigger": "Moment suited to an absurd quantitative comparison or impossible calculation",
+      "strategy": "Briefly overlay an original exaggerated math/stat graphic as a punchline",
+      "avoid": "Injecting a graphic unrelated to what actually happened",
+      "confidence": "medium"
+    },
+    {
+      "id": "branded_outro",
+      "trigger": "Episode concludes",
+      "strategy": "Switch decisively from gameplay to original branded end-card with follow/subscribe or next-video slots",
+      "avoid": "Copying reference graphics",
+      "confidence": "high"
+    }
+  ],
+  "unresolved_items_for_future_analysis": [
+    "Transcript, jokes delivered through speech, narration and voice quirks",
+    "Audio SFX, soundtrack identity or arrangement, and beat-synced editing",
+    "Exact edit cut list distinct from movement/camera-event false positives",
+    "Cross-video style consistency after further reference uploads"
+  ],
+  "library_status": {"reference_index": 1, "intended_reference_count": 10, "cross_reference_style_aggregation_completed": false}
+}

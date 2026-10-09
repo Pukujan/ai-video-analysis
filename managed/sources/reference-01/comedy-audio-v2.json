@@ -1,0 +1,235 @@
+{
+  "schema_version": "2.0.0",
+  "reference_id": "reference_01",
+  "source_file": "Here-Comes-the-SnapYT.App.mp4",
+  "duration_seconds": 564.361,
+  "analysis_goal": "Reusable comedy and entertainment grammar for original long-form gameplay editing, not imitation of copyrighted material",
+  "method": {
+    "visual": "Targeted sub-second frame review and 2-second samples around key beats; sampled gameplay and known earlier frame atlas.",
+    "audio": "Full stereo soundtrack decoded and inspected numerically for 100-ms RMS dynamics around edits, deaths, and overlays. Original stereo AAC track extracted for follow-up.",
+    "speech_recognition": "not available; no semantic transcription of the spoken lines",
+    "important": "Audio signal metrics are not equivalent to listening to speech or identifying music/SFX, laughter, vocal tone or sarcasm."
+  },
+  "status": {
+    "visual_comedy_beat_analysis": "complete for selected high-salience segments",
+    "audio_timing_dynamics": "complete first pass",
+    "spoken_jokes_transcript": "not available",
+    "sarcastic_intonation": "unverified",
+    "full_semantic_audio_analysis": "not complete"
+  },
+  "interpretive_thesis": {
+    "user_observation": "Dark/scary game contrasts with sarcasm and self-torturing humor.",
+    "visual_support": "Losses are explicitly tallied; the player is punished for investigating a seemingly rewarding chest, then loses to the same class of enemy again; repeated retro interruption cards understate catastrophe.",
+    "analytical_hypothesis": "Humor arises when the game treats mistakes as life-or-death calamities while the edit frames the player as a resigned repeat customer of suffering.",
+    "warning": "The specific speaker sarcasm and joke wording remain hypotheses until dialogue is transcribed/listened to."
+  },
+  "comedy_beats": [
+    {
+      "id": "B01",
+      "start_s": 0.0,
+      "end_s": 13.3,
+      "title": "Start already deep in the punishment loop",
+      "visual_evidence": "Gameplay opens mid-action; an on-screen skull counter reads 13 after a brief retro test-card interruption at about 10.6–11.8 s, then gameplay resumes in a different location.",
+      "humor_function": "The film introduces the player not as a triumphant hero but as someone with a history of repeated failure. A jarring faux-broadcast break shrugs off chaotic action.",
+      "joke_mechanisms": [
+        "self-deprecation via quantified failure",
+        "ironic contrast",
+        "comedic ellipsis/reset"
+      ],
+      "confidence_visual": "high",
+      "confidence_humor": "medium",
+      "speech_or_sfx_semantics": "unverified",
+      "audio_signal": {
+        "transition_sound_level": "Overall audio energy drops across the ~10.6-second interruption; a near-quiet stretch is measurable around ~11.9–12.6 s."
+      }
+    },
+    {
+      "id": "B02",
+      "start_s": 208.0,
+      "end_s": 217.0,
+      "title": "Deadpan break from tense exploration",
+      "visual_evidence": "While the character navigates a dangerous-looking dungeon, a one-second retro PLEASE STAND BY card appears around 3:34; skull counter remains 13.",
+      "humor_function": "Editorial underreaction: the edit treats an ominous world as if it were suffering a routine broadcast interruption. Not evidence of a death here; counter remains unchanged.",
+      "joke_mechanisms": [
+        "tonal mismatch",
+        "interruption",
+        "understatement"
+      ],
+      "confidence_visual": "high",
+      "confidence_humor": "medium",
+      "speech_or_sfx_semantics": "unverified",
+      "audio_signal": {
+        "dbfs_median_before": "-27.7",
+        "dbfs_median_around": "-47.6",
+        "dbfs_median_after": "-35.7",
+        "note": "Extremely quiet edit beat relative to preceding gameplay; not proof of total digital silence."
+      }
+    },
+    {
+      "id": "B03",
+      "start_s": 272.0,
+      "end_s": 286.0,
+      "title": "Chest offers reward; world offers punishment",
+      "visual_evidence": "The character interacts with a chest at ~4:34–4:36; it sprouts limbs, grabs the character, and a YOU DIED screen follows around ~4:42. The counter updates from 13 to 14 around 4:38.",
+      "humor_function": "The promise of loot becomes a literal trap. The inescapable consequence supports self-torture humor without requiring extra visual jokes; the death tally serves as a visual punchline.",
+      "joke_mechanisms": [
+        "expectation violation",
+        "dark slapstick",
+        "failure counter as narrator"
+      ],
+      "confidence_visual": "high",
+      "confidence_humor": "high",
+      "speech_or_sfx_semantics": "unverified",
+      "audio_signal": {
+        "dbfs_median_before": "-18.9",
+        "dbfs_median_around": "-16.3",
+        "dbfs_median_after": "-31.0",
+        "note": "Louder event, then overall audio energy drops; cannot assign specific sounds or vocal emotion without listening/transcription."
+      }
+    },
+    {
+      "id": "B04",
+      "start_s": 334.0,
+      "end_s": 340.0,
+      "title": "Impossible arithmetic as absurdist hyperbole",
+      "visual_evidence": "Large equation-like overlay displays 10,000,000, a division sign, and 0 over moving gameplay at ~5:37–5:39.",
+      "humor_function": "A brief implausible mathematical frame intrudes into a severe fantasy setting, likely amplifying frustration or impossibility. Exact setup and meaning are unverified without speech.",
+      "joke_mechanisms": [
+        "absurd visual hyperbole",
+        "genre collision",
+        "sparingly placed emphasis"
+      ],
+      "confidence_visual": "high",
+      "confidence_humor": "low-to-medium",
+      "speech_or_sfx_semantics": "unverified",
+      "audio_signal": {
+        "dbfs_median_before": "-30.7",
+        "dbfs_median_around": "-19.0",
+        "dbfs_median_after": "-26.0",
+        "note": "Higher overall audio level near overlay, but cause (music, commentary, gameplay effect) cannot be identified."
+      }
+    },
+    {
+      "id": "B05",
+      "start_s": 345.0,
+      "end_s": 362.0,
+      "title": "The mimic wins again",
+      "visual_evidence": "Player fights a tall animated chest mimic around ~5:48–5:59. The tally changes 14 to 15 at ~5:57, and the death is confirmed at ~6:00.",
+      "humor_function": "The earlier surprise reverses into conscious persistence; even now, the same category of enemy wins. Failure becomes an escalating callback rather than an isolated mistake.",
+      "joke_mechanisms": [
+        "callback",
+        "comic escalation",
+        "self-inflicted repetition",
+        "dark slapstick"
+      ],
+      "confidence_visual": "high",
+      "confidence_humor": "high",
+      "speech_or_sfx_semantics": "unverified",
+      "audio_signal": {
+        "dbfs_median_before": "-23.5",
+        "dbfs_median_around": "-15.5",
+        "dbfs_median_after": "-31.2",
+        "note": "Second loud climax followed by quieter aftermath parallels first mimic episode."
+      }
+    },
+    {
+      "id": "B06",
+      "start_s": 430.0,
+      "end_s": 445.0,
+      "title": "Another death; broadcast politely resumes",
+      "visual_evidence": "Fire/dragon-threat sequence builds; counter changes 15 to 16 by ~7:14, YOU DIED appears around ~7:18–7:19, followed by a brief PLEASE STAND BY card at ~7:21.3–7:21.8, then the next attempt.",
+      "humor_function": "The catastrophe is both inevitable and bureaucratically dismissed: deadly fantasy action is punctuated by a cheerful, mundane broadcast test pattern. The running tally completes the escalating motif.",
+      "joke_mechanisms": [
+        "anticipation",
+        "recurring punctuation",
+        "underreaction to disaster",
+        "running failure counter"
+      ],
+      "confidence_visual": "high",
+      "confidence_humor": "high",
+      "speech_or_sfx_semantics": "unverified",
+      "audio_signal": {
+        "dbfs_median_before_death": "-15.8",
+        "dbfs_median_around_death": "-13.8",
+        "dbfs_median_after_death": "-17.5",
+        "note": "Overall level drops around standby; not semantic classification of voice or sound effects."
+      }
+    }
+  ],
+  "transferable_patterns": [
+    {
+      "pattern_id": "count_suffering",
+      "trigger": "meaningful setback/death",
+      "prerequisites": [
+        "confirmed outcome"
+      ],
+      "edit_grammar": "Maintain a compact, persistent failure counter. Increment near the consequence instead of explaining the failure.",
+      "guardrail": "Only count real events. Keep overlay legible and sparse.",
+      "confidence": "high"
+    },
+    {
+      "pattern_id": "reward_becomes_trap",
+      "trigger": "seemingly positive interaction turns dangerous",
+      "prerequisites": [
+        "visible expectation",
+        "visible reversal"
+      ],
+      "edit_grammar": "Preserve enough of the optimistic setup to establish a promise; allow the betrayal, reaction and consequence to play out; avoid rushing.",
+      "guardrail": "Do not fake gameplay outcomes.",
+      "confidence": "high"
+    },
+    {
+      "pattern_id": "return_to_punishment",
+      "trigger": "player revisits challenge that previously embarrassed them",
+      "prerequisites": [
+        "prior failure in episode",
+        "new attempt"
+      ],
+      "edit_grammar": "Reintroduce earlier context and let the repeated misfortune serve as escalating callback.",
+      "guardrail": "Keep the new attempt contextual, not duplicate footage.",
+      "confidence": "high"
+    },
+    {
+      "pattern_id": "corporate_underreaction",
+      "trigger": "chaos, a death, or a deliberate chapter jump",
+      "prerequisites": [
+        "editorial beat boundary"
+      ],
+      "edit_grammar": "Use a very short *original* faux-technical test card/normal-service interruption, perhaps with abrupt audio level change, then return to action.",
+      "guardrail": "Do not reuse exact copyrighted reference artwork; not all reference breaks correspond to deaths.",
+      "confidence": "high"
+    },
+    {
+      "pattern_id": "absurd_math",
+      "trigger": "experience or odds framed as comically impossible",
+      "prerequisites": [
+        "context explaining why the claim is absurd"
+      ],
+      "edit_grammar": "Insert a rare oversized mathematical or factual exaggeration, then return immediately to the world.",
+      "guardrail": "Only use when transcript/gameplay establishes the setup; original 10,000,000 ÷ 0 context unresolved.",
+      "confidence": "medium"
+    },
+    {
+      "pattern_id": "tonal_friction",
+      "trigger": "severe/scary atmosphere plus mundane human problem",
+      "prerequisites": [
+        "serious visual stakes",
+        "comic observation"
+      ],
+      "edit_grammar": "Do not remove the scary atmosphere; use a dry line or bureaucratic visual response as contrast.",
+      "guardrail": "Exact voice texture and wording require verified speech evidence.",
+      "confidence": "medium"
+    }
+  ],
+  "audio_observation_notes": {
+    "units": "dBFS, 100ms RMS stereo-downmixed signal; volume features only",
+    "reference_audio": "ref01_analysis/second_pass/reference01_audio.m4a",
+    "interpretation_limits": "Cannot attribute dynamics to creator speech vs game sound, music, or SFX; cannot detect sarcasm from loudness alone."
+  },
+  "next_pass_requirements": [
+    "Time-aligned spoken dialogue or verified speech-to-text transcript to annotate punchlines, irony, self-criticism, and setup/payoff.",
+    "Direct listening/voice model to characterize deadpan, rising stress, whispered delivery, laughing voice, sound effect identity.",
+    "Identify whether displayed impossible arithmetic relates to what is said at 5:37."
+  ],
+  "conclusion": "This episode supports a failure-as-comedy grammar: retain horror atmosphere; highlight self-inflicted setbacks, recurrence and escalating suffering with minimal editorial punctuation. The semantic sarcasm layer is still unverified."
+}

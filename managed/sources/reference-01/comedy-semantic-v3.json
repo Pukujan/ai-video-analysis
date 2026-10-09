@@ -1,0 +1,928 @@
+{
+  "schema_version": "3.0.0",
+  "reference_id": "reference_01",
+  "status": "transcript_aligned_comedic_semantic_analysis",
+  "source": {
+    "file": "Here-Comes-the-SnapYT.App.mp4",
+    "game": "Dark Souls III",
+    "duration_seconds": 564.361,
+    "resolution": "360p",
+    "fps": 30
+  },
+  "evidence": {
+    "transcript": "Timestamped user-supplied transcript with censored words and potential ASR mistakes; source of semantic joke analysis.",
+    "visual": "Earlier frame inspections verified counter, mimic fights, math graphic, broadcast reset and outro. Other gameplay context is drawn from transcript and should be marked accordingly.",
+    "audio": "Earlier numeric RMS/time inspection; transcript includes [Music] at several moments. No human- or model-confirmed ear-based semantic/prosodic listening completed.",
+    "limitations": [
+      "Transcript does not prove vocal intonation or laughter.",
+      "Caption misspellings such as dessert/deserter, knight/Kigot and censored profanity require spot validation.",
+      "Transcript word timestamps approximate; frame-accurate edit timings require revisiting source video.",
+      "Do not infer creator intent from a single example."
+    ]
+  },
+  "thesis": "A hostile gothic-horror game supplies sincere fear and repeated punishment; narrator turns threats into banal social complaints, fear into polite refusal, triumph into self-humiliation, and recurring enemies into comic story arcs. Sparse semantically matched visual/music interventions complete spoken jokes.",
+  "persona_axes": {
+    "relationship_to_world": "Terrified participant who insists on giving enemies mundane personalities",
+    "relationship_to_self": "Boastful antihero repeatedly corrected by gameplay; laughs at his own bad decisions",
+    "verbal_style": [
+      "mock politeness",
+      "dry sarcastic praise",
+      "pop-culture collision",
+      "dark/existential humor",
+      "exaggerated similes",
+      "rapid panic and immediate rationalization",
+      "extended riff on item names"
+    ],
+    "humor_edge": "Adult, profane, transgressive; not necessary to replicate literally when adapting to a new channel",
+    "game_atmosphere": "Preserve grim seriousness as straight man; do not overlay humor nonstop",
+    "voice_prosody": "Actual vocal intonation and dynamics not verified; transcript supports rhetorical style, not measured performance"
+  },
+  "chapter_structure": [
+    {
+      "start_s": 0,
+      "end_s": 81,
+      "label": "Cold open and comic persona",
+      "function": "Establish blasphemous irreverence, mocking narration, self-contradictory confidence, loot riffs."
+    },
+    {
+      "start_s": 82,
+      "end_s": 171,
+      "label": "Dragon threat and disappointing risk",
+      "function": "Introduce overwhelming threat, panic, absurd comparison, loot anticlimax."
+    },
+    {
+      "start_s": 172,
+      "end_s": 272,
+      "label": "Knight pursuit and failed schemes",
+      "function": "Evasion and mockery become running gag; weaponize dragon unsuccessfully."
+    },
+    {
+      "start_s": 273,
+      "end_s": 362,
+      "label": "Mimic betrayal and second death",
+      "function": "Introduce secondary recurring nemesis; betrayal, despair and failed revenge."
+    },
+    {
+      "start_s": 362,
+      "end_s": 475,
+      "label": "Knight escalates, reverses, resolves",
+      "function": "Ongoing chase, mistaken dragon cheese, then edited heroic music and anticlimactic victory."
+    },
+    {
+      "start_s": 476,
+      "end_s": 529,
+      "label": "Mimic grudge resolved and loot pun",
+      "function": "Pay off mimic recurrence; reward has its own wordplay."
+    },
+    {
+      "start_s": 529,
+      "end_s": 564.36,
+      "label": "Distinct outro",
+      "function": "Shock-comedy outro; not representative of gameplay narration pacing."
+    }
+  ],
+  "semantic_beats": [
+    {
+      "id": "J01",
+      "start_s": 0,
+      "end_s": 11,
+      "title": "Blasphemous cold open",
+      "transcript_excerpt": "Your Lord has blessed you... Rejoice.",
+      "gameplay_context": "Player interrupts an ominous church encounter.",
+      "joke_mechanism": "Sacred/profane collision: turns solemn religion and gothic horror into deliberately outrageous praise.",
+      "editor_function": "Keep the gothic setting intact; let verbal sacrilege cause the tonal whiplash. Short broadcast interruption around 0:11.",
+      "voice_function": "Mock reverence, transgressive exaggeration; exact prosody unverified",
+      "evidence": {
+        "dialogue": "user_supplied_timestamped_transcript",
+        "visual": "transcript_context",
+        "vocal_intonation": "not_directly_verified"
+      },
+      "interpretation_confidence": "high",
+      "tags": [
+        "tonal_contrast",
+        "sacred_profane",
+        "cold_open"
+      ]
+    },
+    {
+      "id": "J02",
+      "start_s": 12,
+      "end_s": 21,
+      "title": "Rolling joke reverses itself",
+      "transcript_excerpt": "What am I, a child after a bag of Halloween candy? ... I've never felt so alive.",
+      "gameplay_context": "Player discovers rolling/evasive movement.",
+      "joke_mechanism": "Dismissively rejects a simple game mechanic, then immediately enthusiastically endorses it.",
+      "editor_function": "Retain both sides of the reversal and the gameplay demonstrating the mechanic.",
+      "voice_function": "Performative disdain turns to delighted admission",
+      "evidence": {
+        "dialogue": "user_supplied_timestamped_transcript",
+        "visual": "transcript_context",
+        "vocal_intonation": "not_directly_verified"
+      },
+      "interpretation_confidence": "high",
+      "tags": [
+        "self_contradiction",
+        "setup_payoff"
+      ]
+    },
+    {
+      "id": "J03",
+      "start_s": 23,
+      "end_s": 42,
+      "title": "Enemy as underpaid employee",
+      "transcript_excerpt": "I don't know what they're paying that guy... it's definitely not enough. ... Those boxes sure had it coming.",
+      "gameplay_context": "Guard seems unaware or preoccupied with destructible objects.",
+      "joke_mechanism": "Humanize the AI enemy as an underpaid worker; sarcastically congratulate irrelevant activity.",
+      "editor_function": "Leave enough visual context to show what enemy is doing before the final line.",
+      "voice_function": "Dry mock encouragement",
+      "evidence": {
+        "dialogue": "user_supplied_timestamped_transcript",
+        "visual": "transcript_context",
+        "vocal_intonation": "not_directly_verified"
+      },
+      "interpretation_confidence": "high",
+      "tags": [
+        "anthropomorphism",
+        "sarcasm",
+        "workplace_metaphor"
+      ]
+    },
+    {
+      "id": "J04",
+      "start_s": 43,
+      "end_s": 60,
+      "title": "Deserter trousers extended wordplay",
+      "transcript_excerpt": "Ooh, [deserter] trousers. ... sexy [deserter] look ... fat pants all day.",
+      "gameplay_context": "Player loots deserter trousers. User-supplied transcript renders \"dessert\"; game item is deserter trousers.",
+      "joke_mechanism": "Escalating pun/semantic riff: item name becomes a fashion premise then an absurd lifestyle argument.",
+      "editor_function": "Keep the item pickup legible while the riff unfolds; no unrelated cutaways necessary.",
+      "voice_function": "Mock excitement followed by ridiculous rationalization",
+      "evidence": {
+        "dialogue": "user_supplied_timestamped_transcript",
+        "visual": "transcript_context",
+        "vocal_intonation": "not_directly_verified"
+      },
+      "interpretation_confidence": "high",
+      "tags": [
+        "loot_pun",
+        "absurd_extension"
+      ]
+    },
+    {
+      "id": "J05",
+      "start_s": 61,
+      "end_s": 82,
+      "title": "Combat has no timeouts",
+      "transcript_excerpt": "Who told this guy he could drink his Kool-Aid right now? ... there are no timeouts.",
+      "gameplay_context": "Enemy attempts to drink a healing consumable during combat.",
+      "joke_mechanism": "Pop-culture crossover reframes a standard game mechanic as a rule violation; narrator heckles enemy.",
+      "editor_function": "Show the healing animation and retaliatory hits.",
+      "voice_function": "Playful mock outrage",
+      "evidence": {
+        "dialogue": "user_supplied_timestamped_transcript",
+        "visual": "transcript_context",
+        "vocal_intonation": "not_directly_verified"
+      },
+      "interpretation_confidence": "high",
+      "tags": [
+        "genre_collision",
+        "mock_rules"
+      ]
+    },
+    {
+      "id": "J06",
+      "start_s": 72,
+      "end_s": 81,
+      "title": "Third hit dare backfires",
+      "transcript_excerpt": "I bet you can't do it a third time. Oh... there you go.",
+      "gameplay_context": "Enemy lands another strike while narrator is issuing a challenge.",
+      "joke_mechanism": "Challenge → instant contradiction → conceding punchline.",
+      "editor_function": "Avoid cutting away before the counterexample lands.",
+      "voice_function": "Taunting turns to a panicked concession",
+      "evidence": {
+        "dialogue": "user_supplied_timestamped_transcript",
+        "visual": "transcript_context",
+        "vocal_intonation": "not_directly_verified"
+      },
+      "interpretation_confidence": "high",
+      "tags": [
+        "confidence_punished",
+        "instant_reversal"
+      ]
+    },
+    {
+      "id": "J07",
+      "start_s": 82,
+      "end_s": 101,
+      "title": "Dragon intrudes on stealth fantasy",
+      "transcript_excerpt": "I wonder if I can Assassin's Creed these guys... It's just a gigantic ... dragon.",
+      "gameplay_context": "Unexpected enormous dragon disrupts attempted stealth/attack.",
+      "joke_mechanism": "A mundane action plan is interrupted by a colossal, wildly disproportionate new threat.",
+      "editor_function": "Preserve the discovery and shock; do not preannounce the dragon with a narrator caption.",
+      "voice_function": "Surprise turns into exaggeratedly calm description",
+      "evidence": {
+        "dialogue": "user_supplied_timestamped_transcript",
+        "visual": "transcript_context",
+        "vocal_intonation": "not_directly_verified"
+      },
+      "interpretation_confidence": "high",
+      "tags": [
+        "scale_mismatch",
+        "shock",
+        "genre_collision"
+      ]
+    },
+    {
+      "id": "J08",
+      "start_s": 95,
+      "end_s": 101,
+      "title": "Impossible comparison",
+      "transcript_excerpt": "I'd have an easier time overthrowing North Korea with a pencil.",
+      "gameplay_context": "Narrator sees the dragon as likely impossible to beat.",
+      "joke_mechanism": "Wildly disproportionate absurd comparison dramatizes perceived difficulty.",
+      "editor_function": "Let the actual size/strength of dragon sell the comparison.",
+      "voice_function": "Hyperbole rather than literal political claim",
+      "evidence": {
+        "dialogue": "user_supplied_timestamped_transcript",
+        "visual": "transcript_context",
+        "vocal_intonation": "not_directly_verified"
+      },
+      "interpretation_confidence": "high",
+      "tags": [
+        "hyperbole",
+        "unexpected_analogy"
+      ]
+    },
+    {
+      "id": "J09",
+      "start_s": 102,
+      "end_s": 131,
+      "title": "Dragon needs therapy",
+      "transcript_excerpt": "Serves them right... ignoring the... dragon. ... little problem with personal space.",
+      "gameplay_context": "Nearby enemies do not react in the expected way to dragon.",
+      "joke_mechanism": "Treat the monster as a socially inconsiderate person, while mocking NPC obliviousness.",
+      "editor_function": "Show dragon/NPC relationship; preserve threat under commentary.",
+      "voice_function": "Understated social complaint amid catastrophe",
+      "evidence": {
+        "dialogue": "user_supplied_timestamped_transcript",
+        "visual": "transcript_context",
+        "vocal_intonation": "not_directly_verified"
+      },
+      "interpretation_confidence": "high",
+      "tags": [
+        "anthropomorphism",
+        "incongruity"
+      ]
+    },
+    {
+      "id": "J10",
+      "start_s": 119,
+      "end_s": 137,
+      "title": "Fear punctures curiosity",
+      "transcript_excerpt": "Oh my god... Does fire hurt? ... Fire definitely hurts just like in real life.",
+      "gameplay_context": "Dragon breathes fire and narrator considers loot.",
+      "joke_mechanism": "Escalating fear/vocal repetition resolves in absurdly obvious empirical conclusion.",
+      "editor_function": "Keep fear beat, fire impact and dry conclusion in same sequence.",
+      "voice_function": "Rapid alarm followed by deadpan observation; cadence inferred from wording only",
+      "evidence": {
+        "dialogue": "user_supplied_timestamped_transcript",
+        "visual": "transcript_context",
+        "vocal_intonation": "not_directly_verified"
+      },
+      "interpretation_confidence": "high",
+      "tags": [
+        "panic_to_deadpan",
+        "dark_obviousness"
+      ]
+    },
+    {
+      "id": "J11",
+      "start_s": 140,
+      "end_s": 150,
+      "title": "The club is not worth the burns",
+      "transcript_excerpt": "I did this for a club? ... definitely worth every third-degree burn.",
+      "gameplay_context": "Dangerous excursion returns a mediocre weapon.",
+      "joke_mechanism": "Effort–reward mismatch; sarcastic praise reframes terrible reward as triumph.",
+      "editor_function": "Show the resource cost, pickup, and disparaging payoff.",
+      "voice_function": "Ironic enthusiasm",
+      "evidence": {
+        "dialogue": "user_supplied_timestamped_transcript",
+        "visual": "transcript_context",
+        "vocal_intonation": "not_directly_verified"
+      },
+      "interpretation_confidence": "high",
+      "tags": [
+        "loot_anticlimax",
+        "suffering_reward"
+      ]
+    },
+    {
+      "id": "J12",
+      "start_s": 172,
+      "end_s": 212,
+      "title": "Strategic retreat from the knight",
+      "transcript_excerpt": "I decline. I respectfully decline your offer, sir.",
+      "gameplay_context": "Powerful knight pursues protagonist; player uses elevator/ladder to escape.",
+      "joke_mechanism": "Fear and cowardice euphemized as strategic choice or polite social refusal.",
+      "editor_function": "Retain frantic movement; optionally reduce edits during escape to maintain stakes.",
+      "voice_function": "Formal polite speech directly contradicts panicked action",
+      "evidence": {
+        "dialogue": "user_supplied_timestamped_transcript",
+        "visual": "transcript_context",
+        "vocal_intonation": "not_directly_verified"
+      },
+      "interpretation_confidence": "high",
+      "tags": [
+        "fear_reframed",
+        "polite_absurdity"
+      ]
+    },
+    {
+      "id": "J13",
+      "start_s": 216,
+      "end_s": 242,
+      "title": "Knight deserves benefits",
+      "transcript_excerpt": "Somebody give this guy some benefits. I've seen corpses more motivated than that.",
+      "gameplay_context": "Knight persists in pursuit; narrator calls out enemy diligence.",
+      "joke_mechanism": "Running workplace metaphor; formidable menace becomes an overcommitted employee.",
+      "editor_function": "Hold on persistent pursuit before line, then resume danger.",
+      "voice_function": "Dry mock respect",
+      "evidence": {
+        "dialogue": "user_supplied_timestamped_transcript",
+        "visual": "transcript_context",
+        "vocal_intonation": "not_directly_verified"
+      },
+      "interpretation_confidence": "high",
+      "tags": [
+        "callback",
+        "anthropomorphism",
+        "workplace_metaphor"
+      ]
+    },
+    {
+      "id": "J14",
+      "start_s": 225,
+      "end_s": 239,
+      "title": "Dragon-backed taunt collapses",
+      "transcript_excerpt": "Only one of us doesn't have a dragon behind them. ... game just never lets me talk [trash].",
+      "gameplay_context": "Narrator attempts to threaten enemy by using dragon, gets hit mid-boast.",
+      "joke_mechanism": "Setup → instant contradiction → explicit admission that the game punishes bragging.",
+      "editor_function": "Keep boast, hit and acknowledgement contiguous; do not hide the embarrassing hit.",
+      "voice_function": "Confidence followed by rueful self-awareness",
+      "evidence": {
+        "dialogue": "user_supplied_timestamped_transcript",
+        "visual": "transcript_context",
+        "vocal_intonation": "not_directly_verified"
+      },
+      "interpretation_confidence": "high",
+      "tags": [
+        "confidence_punished",
+        "self_own"
+      ]
+    },
+    {
+      "id": "J15",
+      "start_s": 241,
+      "end_s": 260,
+      "title": "Failed dragon cheese becomes deserved punishment",
+      "transcript_excerpt": "I want you to meet a friend of mine. ... Oh god, a dragon is still definitely there, you idiot. I deserve that.",
+      "gameplay_context": "Player tries to lure knight to dragon; self-endangers.",
+      "joke_mechanism": "Elaborate plan backfires; insults redirect from enemies to narrator himself.",
+      "editor_function": "Expose plan early enough that audience sees why it failed; retain self-blame.",
+      "voice_function": "Scheming to panicked insult to self-criticism",
+      "evidence": {
+        "dialogue": "user_supplied_timestamped_transcript",
+        "visual": "transcript_context",
+        "vocal_intonation": "not_directly_verified"
+      },
+      "interpretation_confidence": "high",
+      "tags": [
+        "self_sabotage",
+        "callback",
+        "failed_plan"
+      ]
+    },
+    {
+      "id": "J16",
+      "start_s": 260,
+      "end_s": 272,
+      "title": "Fighting inner demons",
+      "transcript_excerpt": "What is he fighting, his inner demons? You're going to lose that battle, buddy.",
+      "gameplay_context": "NPC behavior becomes an excuse for faux-psychological diagnosis.",
+      "joke_mechanism": "Personification of unsettling enemy AI as existentially troubled.",
+      "editor_function": "Show the peculiar NPC behavior that motivates the diagnosis.",
+      "voice_function": "Mock-therapist tone inferred from wording",
+      "evidence": {
+        "dialogue": "user_supplied_timestamped_transcript",
+        "visual": "transcript_context",
+        "vocal_intonation": "not_directly_verified"
+      },
+      "interpretation_confidence": "high",
+      "tags": [
+        "depression_motif",
+        "anthropomorphism"
+      ]
+    },
+    {
+      "id": "J17",
+      "start_s": 273,
+      "end_s": 290,
+      "title": "First mimic destroys trust",
+      "transcript_excerpt": "What in the actual... is that? ... Just chomp right down on my spine. ... trust issues.",
+      "gameplay_context": "Chest becomes a mimic, traps and kills player; death counter 13→14.",
+      "joke_mechanism": "Reward betrayal → horrifying slapstick → mundane relationship metaphor (trust issues).",
+      "editor_function": "Preserve loot expectation, transformation, grab, failed escape, deadpan aftermath and tally.",
+      "voice_function": "Alarm morphs into sarcastic permission then psychological understatement",
+      "evidence": {
+        "dialogue": "user_supplied_timestamped_transcript",
+        "visual": "prior_video_frames_confirm_mimic_counter",
+        "vocal_intonation": "not_directly_verified"
+      },
+      "interpretation_confidence": "high",
+      "tags": [
+        "expectation_reversal",
+        "self_torture",
+        "psychological_understatement"
+      ]
+    },
+    {
+      "id": "J18",
+      "start_s": 289,
+      "end_s": 326,
+      "title": "Everything is depressed; player dies too",
+      "transcript_excerpt": "Things could always be worse... Not today, dragon. ... maybe today... Life is meaningless. And then you die.",
+      "gameplay_context": "Narrator mocks hostile world’s hopelessness; attempts to escape dragon and reconsiders.",
+      "joke_mechanism": "Depression as a repeated absurd descriptor, immediate self-contradiction by fresh danger, fatalistic philosophy.",
+      "editor_function": "Preserve progression from concern to jinx; let tragedy and nihilistic joke coexist.",
+      "voice_function": "Mock encouragement, panic, resigned existentialism",
+      "evidence": {
+        "dialogue": "user_supplied_timestamped_transcript",
+        "visual": "transcript_context",
+        "vocal_intonation": "not_directly_verified"
+      },
+      "interpretation_confidence": "high",
+      "tags": [
+        "depression_motif",
+        "self_contradiction",
+        "dark_humor"
+      ]
+    },
+    {
+      "id": "J19",
+      "start_s": 325,
+      "end_s": 340,
+      "title": "Equation completes a spoken joke",
+      "transcript_excerpt": "If you divided anything by the number of [cares] he gives, we'd be in a lot of trouble.",
+      "gameplay_context": "Knight ignores or does not react to narrator; oversized division by zero graphic appears around 5:37.",
+      "joke_mechanism": "Idiomatic zero concern is literalized as division by zero. Graphics are semantically motivated, not random.",
+      "editor_function": "Show or animate the zero denominator exactly on the linguistic reveal; keep it brief.",
+      "voice_function": "Dry mathematical hyperbole",
+      "evidence": {
+        "dialogue": "user_supplied_timestamped_transcript",
+        "visual": "prior_video_frames_confirm_equation",
+        "vocal_intonation": "not_directly_verified"
+      },
+      "interpretation_confidence": "high",
+      "tags": [
+        "semantic_visual_payoff",
+        "word_to_graphic"
+      ]
+    },
+    {
+      "id": "J20",
+      "start_s": 340,
+      "end_s": 362,
+      "title": "Second mimic: planned revenge becomes worse",
+      "transcript_excerpt": "Fool me once... Fool me twice... I don't want a hug from you... kicked me into a new dimension.",
+      "gameplay_context": "Narrator revisits mimic and dies again; counter 14→15.",
+      "joke_mechanism": "Revenge bravado → grotesque threat reframed as unwanted hug → ridiculous martial-arts attribution → fresh death.",
+      "editor_function": "Connect to earlier mimic to preserve callback; avoid compressing to a generic loss montage.",
+      "voice_function": "Defiance, revulsion, incredulous awe",
+      "evidence": {
+        "dialogue": "user_supplied_timestamped_transcript",
+        "visual": "prior_video_frames_confirm_second_mimic_death",
+        "vocal_intonation": "not_directly_verified"
+      },
+      "interpretation_confidence": "high",
+      "tags": [
+        "recurring_antagonist",
+        "callback",
+        "body_horror_humor"
+      ]
+    },
+    {
+      "id": "J21",
+      "start_s": 362,
+      "end_s": 392,
+      "title": "Existential skeletons and opting out",
+      "transcript_excerpt": "Full of existential skeletons. ... How about try no battle?",
+      "gameplay_context": "Player encounters hostile environment and a note recommending ranged combat.",
+      "joke_mechanism": "The fantasy game demands heroism; narrator treats avoidance as superior strategy.",
+      "editor_function": "Show advice and deliberate rejection rather than randomly cutting to flight.",
+      "voice_function": "Sarcastic practical reasoning",
+      "evidence": {
+        "dialogue": "user_supplied_timestamped_transcript",
+        "visual": "transcript_context",
+        "vocal_intonation": "not_directly_verified"
+      },
+      "interpretation_confidence": "high",
+      "tags": [
+        "antihero",
+        "genre_inversion"
+      ]
+    },
+    {
+      "id": "J22",
+      "start_s": 393,
+      "end_s": 422,
+      "title": "Knight breaks ladder escape fantasy",
+      "transcript_excerpt": "Good luck climbing down the ladder... Oh... he did it.",
+      "gameplay_context": "Persistent knight follows player down ladder.",
+      "joke_mechanism": "Taunt rests on false confidence in game mechanics; instant reversal creates joke.",
+      "editor_function": "Leave ladder descent visible for payoff; do not pre-cut the counterexample.",
+      "voice_function": "Superior tone breaks into shocked respect",
+      "evidence": {
+        "dialogue": "user_supplied_timestamped_transcript",
+        "visual": "transcript_context",
+        "vocal_intonation": "not_directly_verified"
+      },
+      "interpretation_confidence": "high",
+      "tags": [
+        "confidence_punished",
+        "callback"
+      ]
+    },
+    {
+      "id": "J23",
+      "start_s": 420,
+      "end_s": 445,
+      "title": "Dragon trap boomerangs",
+      "transcript_excerpt": "It's a little warm, but you'll get over it... isn't that just the greatest ... thing? I got my head barbecued.",
+      "gameplay_context": "Player tries to lure knight into dragon fire but gets burned to death; counter reaches 16.",
+      "joke_mechanism": "Setup of cruel trick → cruel reversal directed at protagonist → exaggerated sarcastic gratitude.",
+      "editor_function": "Maintain spatial relation between lure and flame; brief reset card around 7:21.",
+      "voice_function": "Feigned reassurance followed by bitter sarcasm",
+      "evidence": {
+        "dialogue": "user_supplied_timestamped_transcript",
+        "visual": "prior_video_frames_confirm_death_card",
+        "vocal_intonation": "not_directly_verified"
+      },
+      "interpretation_confidence": "high",
+      "tags": [
+        "failed_plan",
+        "dramatic_irony",
+        "self_own"
+      ]
+    },
+    {
+      "id": "J24",
+      "start_s": 442,
+      "end_s": 455,
+      "title": "Future editor becomes character",
+      "transcript_excerpt": "All right, future me. Cue the battle music.",
+      "gameplay_context": "After repeated avoidance, narrator finally commits to fighting knight; transcript marks music ~7:33.",
+      "joke_mechanism": "Explicit fourth-wall break calls editing into the joke; music supplies ceremonial self-importance.",
+      "editor_function": "Music must begin in response to spoken cue, not before; modulate seriousness against actual encounter.",
+      "voice_function": "Mockly heroic stage direction",
+      "evidence": {
+        "dialogue": "user_supplied_timestamped_transcript",
+        "visual": "transcript_context",
+        "vocal_intonation": "not_directly_verified"
+      },
+      "interpretation_confidence": "high",
+      "tags": [
+        "meta_editing",
+        "music_punchline",
+        "payoff"
+      ]
+    },
+    {
+      "id": "J25",
+      "start_s": 465,
+      "end_s": 475,
+      "title": "Victory makes prior cowardice funnier",
+      "transcript_excerpt": "That wasn't so bad. ... I could have just taken him on this whole time. Serves me right.",
+      "gameplay_context": "Knight is defeated after prolonged avoidance.",
+      "joke_mechanism": "Delayed payoff recontextualizes ~minutes of running as unnecessary; narrator himself closes the joke.",
+      "editor_function": "Allow short victorious beat, then self-own; keep continuity with earlier knight chase.",
+      "voice_function": "Brief triumph immediately deflated",
+      "evidence": {
+        "dialogue": "user_supplied_timestamped_transcript",
+        "visual": "transcript_context",
+        "vocal_intonation": "not_directly_verified"
+      },
+      "interpretation_confidence": "high",
+      "tags": [
+        "long_range_callback",
+        "self_own",
+        "anticlimax"
+      ]
+    },
+    {
+      "id": "J26",
+      "start_s": 476,
+      "end_s": 484,
+      "title": "Another disappointing pickup",
+      "transcript_excerpt": "Better be something good up here... Yes, that definitely works. ... considered this good.",
+      "gameplay_context": "Player expects worthwhile reward after knight fight.",
+      "joke_mechanism": "An apparently disappointing reward is greeted with emphatic ironic positivity.",
+      "editor_function": "Sync loot reveal and sarcastic response; quality of loot should be visually legible.",
+      "voice_function": "Exaggerated false approval",
+      "evidence": {
+        "dialogue": "user_supplied_timestamped_transcript",
+        "visual": "transcript_context",
+        "vocal_intonation": "not_directly_verified"
+      },
+      "interpretation_confidence": "high",
+      "tags": [
+        "loot_anticlimax",
+        "sarcasm"
+      ]
+    },
+    {
+      "id": "J27",
+      "start_s": 484,
+      "end_s": 513,
+      "title": "Third encounter with the mimic",
+      "transcript_excerpt": "Round three, you disgusting spawn of Satan... nobody will miss this thing.",
+      "gameplay_context": "Narrator returns to mimic for third try and eventually kills it.",
+      "joke_mechanism": "Recurring antagonist upgrades from surprise to grudge to revenge payoff.",
+      "editor_function": "Retain round marker, partial fight, victory moment; incorporate earlier losses as narrative memory.",
+      "voice_function": "Mock heroic disgust",
+      "evidence": {
+        "dialogue": "user_supplied_timestamped_transcript",
+        "visual": "transcript_context",
+        "vocal_intonation": "not_directly_verified"
+      },
+      "interpretation_confidence": "high",
+      "tags": [
+        "long_range_callback",
+        "escalation",
+        "payoff"
+      ]
+    },
+    {
+      "id": "J28",
+      "start_s": 515,
+      "end_s": 528,
+      "title": "Deep Battle Axe becomes an emo character",
+      "transcript_excerpt": "This axe is so deep. Nobody really understands him. It's just not part of the system.",
+      "gameplay_context": "Mimic drops Deep Battle Axe.",
+      "joke_mechanism": "Literalizes descriptor \"deep\" as melodramatic teenage psychology; reward riff closes the revenge arc.",
+      "editor_function": "Hold item acquisition and name long enough for wordplay.",
+      "voice_function": "Deadpan fake empathy with the weapon",
+      "evidence": {
+        "dialogue": "user_supplied_timestamped_transcript",
+        "visual": "transcript_context",
+        "vocal_intonation": "not_directly_verified"
+      },
+      "interpretation_confidence": "high",
+      "tags": [
+        "loot_pun",
+        "personification",
+        "depression_motif"
+      ]
+    },
+    {
+      "id": "J29",
+      "start_s": 536,
+      "end_s": 553,
+      "title": "Outrageous outro and self-directed insult",
+      "transcript_excerpt": "Handcrafted... 3D recreation... I should know I'm a massive...",
+      "gameplay_context": "Video transitions to branded outro.",
+      "joke_mechanism": "Transgressive adult shock joke closed by speaker-directed insult rather than triumph.",
+      "editor_function": "Keep outro thematically separate; do not transplant creator-specific joke or assets.",
+      "voice_function": "Mock expert demonstration undercut by self-deprecation",
+      "evidence": {
+        "dialogue": "user_supplied_timestamped_transcript",
+        "visual": "prior_video_frames_confirm_outro",
+        "vocal_intonation": "not_directly_verified"
+      },
+      "interpretation_confidence": "high",
+      "tags": [
+        "outro",
+        "shock_humor",
+        "self_deprecation"
+      ]
+    }
+  ],
+  "reusable_patterns": [
+    {
+      "id": "P01",
+      "name": "Terror versus banal social complaint",
+      "trigger": "Genuinely ominous enemy or location",
+      "rule": "Preserve atmospheric gameplay; reinterpret monster behavior as an everyday social failing (bad manners, poor work conditions, etc.)",
+      "examples": [
+        "Dragon has personal-space issues",
+        "Knight needs benefits"
+      ],
+      "guardrail": "Humor must depend on observed behavior; no context-free one-liners."
+    },
+    {
+      "id": "P02",
+      "name": "Confidence punished in under five seconds",
+      "trigger": "Player makes a taunt, confident prediction, or dismissive claim",
+      "rule": "Keep unbroken boast → contradictory gameplay → short acknowledgement of error.",
+      "examples": [
+        "third-hit dare",
+        "dragon behind the opponent",
+        "ladder boast"
+      ],
+      "guardrail": "Do not fabricate gameplay timing; retain genuine outcomes."
+    },
+    {
+      "id": "P03",
+      "name": "Fear expressed as bureaucratic politeness",
+      "trigger": "Player retreats or refuses a dangerous encounter",
+      "rule": "Pair frantic movement with calm, formal verbal refusal or rationalization.",
+      "examples": [
+        "I respectfully decline",
+        "strategic retreat"
+      ],
+      "guardrail": "Use sparingly to preserve tension."
+    },
+    {
+      "id": "P04",
+      "name": "Loot and expectation anticlimax",
+      "trigger": "Player risks death to obtain underwhelming loot",
+      "rule": "Show cost and reward, then offer overenthusiastic or defeated commentary.",
+      "examples": [
+        "club after dragon burns",
+        "disappointing knight reward"
+      ],
+      "guardrail": "Ground joke in item value/usefulness where possible."
+    },
+    {
+      "id": "P05",
+      "name": "Literalize spoken idiom visually",
+      "trigger": "Narrator makes a comparison with a concrete symbolic form",
+      "rule": "On linguistic climax, insert brief graphic that illustrates the actual meaning.",
+      "examples": [
+        "dividing by zero on number of cares"
+      ],
+      "guardrail": "Never add mathematical or other effects at random."
+    },
+    {
+      "id": "P06",
+      "name": "Recurring nemesis carries the B-story",
+      "trigger": "Same enemy or obstacle recurs",
+      "rule": "Preserve first encounter, second failure/escalation, third successful or failed resolution; attach narrative memory.",
+      "examples": [
+        "mimic chest three rounds",
+        "knight pursue → defeat"
+      ],
+      "guardrail": "A callback must refer to a real prior event."
+    },
+    {
+      "id": "P07",
+      "name": "Overreaching simile",
+      "trigger": "Threat or difficulty is unusually disproportionate",
+      "rule": "Use one unexpected analogy then return quickly to unembellished action.",
+      "examples": [
+        "pencil versus impossible overthrow"
+      ],
+      "guardrail": "Avoid copying creator-specific similes; write originals."
+    },
+    {
+      "id": "P08",
+      "name": "Meta editor collaboration",
+      "trigger": "Player knowingly addresses edit or future self",
+      "rule": "Treat the spoken editing instruction as setup; time music/SFX to fulfill it.",
+      "examples": [
+        "future me cue battle music"
+      ],
+      "guardrail": "Never let editor music preempt the joke."
+    },
+    {
+      "id": "P09",
+      "name": "Humanize AI and objects",
+      "trigger": "NPC behaves oddly or loot item name has a double meaning",
+      "rule": "Give an enemy/object mundane personality, existential worries or occupational motives.",      "examples": [
+        "guard attacks boxes",
+        "Deep Battle Axe is misunderstood"
+      ],
+      "guardrail": "Tie the trait to an actual observation or name."
+    },
+    {
+      "id": "P10",
+      "name": "Panic → mundane understatement",
+      "trigger": "Jump scare, death, close call",
+      "rule": "Let reaction hit; end with remarkably ordinary or polite response.",
+      "examples": [
+        "mimic causes trust issues",
+        "fire definitely hurts"
+      ],
+      "guardrail": "Do not force sarcastic response into moments requiring quiet."
+    },
+    {
+      "id": "P11",
+      "name": "Failure scoreboard without overcutting",
+      "trigger": "A meaningful actual death or failure",
+      "rule": "Keep natural gameplay; let restrained tally update function as unsentimental narrative memory.",
+      "examples": [
+        "death counter 13→16"
+      ],
+      "guardrail": "Avoid treating every change in camera as an edited cut."
+    },
+    {
+      "id": "P12",
+      "name": "Fearful antihero instead of power fantasy",
+      "trigger": "Confrontation where escape may be sensible",
+      "rule": "Make avoidance itself into a protagonist preference, then let consequences contradict the plan.",
+      "examples": [
+        "try no battle",
+        "dragon trap backfires"
+      ],
+      "guardrail": "Keep agency and progression; do not make whole video only avoidance."
+    },
+    {
+      "id": "P13",
+      "name": "Black-comedy philosophy",
+      "trigger": "World appears relentlessly miserable or hostile",
+      "rule": "Make despair/existentialism a darkly ironic character trait of the setting, coupled with speaker self-awareness.",
+      "examples": [
+        "existential skeletons",
+        "life is meaningless and then you die"
+      ],
+      "guardrail": "Use situation-driven fictional dark humor, not automatic cruelty to real people."
+    },
+    {
+      "id": "P14",
+      "name": "Premise extension (three-step riff)",
+      "trigger": "New noun or situation allows a word association",
+      "rule": "Introduce the hook; expand its implications; end with absurd consequence or self-directed undercut.",
+      "examples": [
+        "deserter trousers fashion/fat pants",
+        "Deep Battle Axe as emo"
+      ],
+      "guardrail": "Do not spend multiple sentences riffing unless action allows it."
+    }
+  ],
+  "timeline_alignment": {
+    "music_cues_from_user_transcript": [
+      {
+        "time_s": 16,
+        "label": "[Music] short cue"
+      },
+      {
+        "time_s": 224,
+        "label": "[Music] during transition"
+      },
+      {
+        "time_s": 247,
+        "label": "[Music] after failed scheme"
+      },
+      {
+        "time_s": 453,
+        "label": "[Music] around 7:33 following future-editor cue around 7:27–7:33"
+      },
+      {
+        "time_s": 482,
+        "label": "[Music] after loot beat"
+      },
+      {
+        "time_s": 498,
+        "label": "[Music] during third mimic fight"
+      },
+      {
+        "time_s": 528,
+        "label": "[Music] after joke"
+      },
+      {
+        "time_s": 562,
+        "label": "[Music] in outro"
+      }
+    ],
+    "faux_broadcast_card_visual_anchors_seconds": [
+      11,
+      214,
+      441
+    ],
+    "audio_envelope_notes": "Earlier measured quieter test-card interruption and stronger impact peaks around mimic deaths; this is acoustic dynamics, not verified sarcasm delivery."
+  },
+  "editing_automation_recipe": {
+    "detect": [
+      "Player boasts within seconds of failure",
+      "repeated enemy across separated encounters",
+      "hard-earned low-value reward",
+      "NPC seems oblivious, idle or excessively persistent",
+      "player speaks an idiom with visualizable content",
+      "narrator directly requests an edit",
+      "gothic setting + unexpectedly mundane reaction"
+    ],
+    "retrieve": "Match a detected event sequence to a generalized pattern, not a specific creator catchphrase or copyrighted asset.",
+    "plan": "Reserve unedited setup and game atmosphere, then pick one strong spoken punchline, an optional synchronized effect and a short aftermath.",
+    "timeline_output": "Store clip in/out, transcript quote and confidence, referenced prior callback IDs, edit timing offsets, music ducking, SFX and editable project path.",
+    "review": "Reject invented causal connections, inauthentic voice imitation, unrelated stock memes, and jokes the gameplay does not support."
+  },
+  "cross_reference_tags": [
+    "fear_comedy",
+    "sarcastic_antihero",
+    "dark_existential_humor",
+    "longform_callback",
+    "narration_led",
+    "semantic_edit",
+    "horror_straight_man"
+  ],
+  "source_attribution": "Use as study of general techniques; produce new writing and own voice, audio and graphics when reusing patterns."
+}

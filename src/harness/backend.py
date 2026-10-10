@@ -242,17 +242,27 @@ class InferHubBackend:
                     continue
                 raise BackendError(f"inferhub request failed: {error[:400]}")
             assert payload is not None
-            message = payload["choices"][0]["message"]
-            finish = payload["choices"][0].get("finish_reason")
-            if finish == "error" or (message.get("content") is None and _is_gate_trip(
-                json.dumps(payload)
-            )):
-                last_reason = json.dumps(payload.get("choices", [{}])[0].get("error", {}))
-                continue
-            if message.get("content") is None:
-                raise BackendError("inferhub returned no content")
+            choices = payload.get("choices") or []
+            if not choices:
+                # A 200 carrying only ``{"error": {...}}``. Whether this is the
+                # gate is decided by its text, never assumed from its shape.
+                reason = json.dumps(payload.get("error") or payload)
+                if _is_gate_trip(reason):
+                    last_reason = reason
+                    continue
+                raise BackendError(f"inferhub returned no choices: {reason[:400]}")
+            message = choices[0].get("message") or {}
+            content = message.get("content")
+            if content is None:
+                # No usable content. Retry only a *gate trip*: a genuine provider
+                # error must neither be retried nor recorded as ``content_gate``.
+                reason = json.dumps(choices[0].get("error") or payload)
+                if _is_gate_trip(reason):
+                    last_reason = reason
+                    continue
+                raise BackendError(f"inferhub returned no content: {reason[:400]}")
             return Completion(
-                content=_extract_json(message["content"]),
+                content=_extract_json(content),
                 model=payload.get("model", request.model),
                 usage=payload.get("usage") or {},
                 attempts=attempt,

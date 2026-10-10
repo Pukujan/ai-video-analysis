@@ -145,6 +145,71 @@ def test_non_gate_error_is_not_retried(tmp_path: Path, monkeypatch: pytest.Monke
 
 
 # --------------------------------------------------------------------------
+# 200 responses that are not a completion
+#
+# Both shapes are real (the spike saw the first), and both used to escape the
+# pass: a ``KeyError`` on ``choices`` killed the whole video rather than failing
+# one window, and a non-gate ``finish_reason: "error"`` was retried three times
+# and then recorded as ``content_gate:``.
+# --------------------------------------------------------------------------
+
+
+def test_error_shaped_200_without_choices_raises_backend_error(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    backend = _backend()
+    calls = {"n": 0}
+    payload = {"error": {"message": "upstream unavailable", "code": 503}}
+
+    def error_payload(body: object) -> tuple[dict[str, object], str]:
+        calls["n"] += 1
+        return payload, ""
+
+    monkeypatch.setattr(backend, "_post", error_payload)
+    with pytest.raises(BackendError, match="no choices"):
+        backend.complete(_request(tmp_path))
+    assert calls["n"] == 1
+
+
+def test_non_gate_finish_error_is_not_retried(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    backend = _backend()
+    calls = {"n": 0}
+    payload = {"choices": [{"finish_reason": "error", "message": {"content": None}}]}
+
+    def failed(body: object) -> tuple[dict[str, object], str]:
+        calls["n"] += 1
+        return payload, ""
+
+    monkeypatch.setattr(backend, "_post", failed)
+    with pytest.raises(BackendError, match="no content"):
+        backend.complete(_request(tmp_path))
+    assert calls["n"] == 1  # a genuine provider error is not a gate trip
+
+
+def test_gated_200_without_content_is_retried(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    backend = _backend()
+    calls = {"n": 0}
+    payload = {
+        "choices": [
+            {"finish_reason": "error", "error": {"message": "DataInspectionFailed"}}
+        ]
+    }
+
+    def gated(body: object) -> tuple[dict[str, object], str]:
+        calls["n"] += 1
+        return payload, ""
+
+    monkeypatch.setattr(backend, "_post", gated)
+    with pytest.raises(GateTripped):
+        backend.complete(_request(tmp_path))
+    assert calls["n"] == 3
+
+
+# --------------------------------------------------------------------------
 # Router
 # --------------------------------------------------------------------------
 

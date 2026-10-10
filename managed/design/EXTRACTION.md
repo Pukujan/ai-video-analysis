@@ -171,6 +171,15 @@ det pass windows (plan_coverage)
   `"schema_rejected: "` + the error.
 - **Other backend failure**: the window fails with `"extraction_error: "`
   + the error; the pass continues to the next window.
+- **A 200 that is not a completion**: two shapes reach the backend that
+  are neither a completion nor an HTTP error, and both are handled by
+  *text*, never by assumed shape. A body with no `choices` (a top-level
+  `{"error": {...}}`) raises `BackendError` naming the reason; a
+  `finish_reason: "error"` with no content is retried **only** when its
+  text carries a gate marker, otherwise it is a `BackendError` and is not
+  retried. Getting this wrong is how a non-gate provider error would be
+  mislabelled `content_gate:` or a `KeyError` would escape the per-window
+  loop and kill the whole video instead of one window.
 - **No audio in window**: `DeliveryLens` emits nothing; `TranscriptLens`
   (asr) emits nothing; `InterpretationLens` may still run (visual-only).
 - **Missing ffmpeg / missing key**: fail fast at startup with an

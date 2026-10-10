@@ -1,0 +1,23 @@
+schema_version = "1.0.0"
+
+[profile]
+id = "base"
+version = "1.0.0"
+
+[policy]
+id = "det-v1"
+
+[windowing]
+window_ms = 25000
+overlap_ms = 5000
+
+[silence]
+noise_db = -32.0
+min_s = 0.4
+
+[scene]
+threshold = 0.4
+cut_score_threshold = 0.6
+
+[tooling]
+ffmpeg_version = "8.1.1"

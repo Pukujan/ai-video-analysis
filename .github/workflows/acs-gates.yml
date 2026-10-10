@@ -1,0 +1,70 @@
+name: ACS gates
+
+# Fail-closed check that the adopted agent stack is intact. Mirrors the
+# validators the hot-loader pins; a broken stack setup is caught before main.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  stack:
+    name: Adopted stack validates
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the adopter
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install validator dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install jsonschema
+
+      - name: Check out CGM at the pinned commit
+        uses: actions/checkout@v4
+        with:
+          repository: Pukujan/content-generation-modules
+          path: .cgm
+          fetch-depth: 0
+
+      - name: Pin CGM to the commit the adapter declares
+        run: |
+          COMMIT=$(python -c "import json;print(json.load(open('.content-system/system-version.json'))['helper_commit'])")
+          git -C .cgm checkout "$COMMIT"
+
+      - name: Validate the CGM adapter
+        run: |
+          python .cgm/scripts/validate_content_system.py \
+            --root .cgm \
+            --adapter .content-system \
+            --project-root .
+
+      - name: Check out OIO at the pinned commit
+        uses: actions/checkout@v4
+        with:
+          repository: Pukujan/observational-issue-ops
+          path: .oio-src
+          fetch-depth: 0
+
+      - name: Pin OIO to the commit the installer recorded
+        run: |
+          COMMIT=$(python -c "import json;print(json.load(open('.coord/hotload.lock.json'))['checkouts']['oio']['commit'])")
+          git -C .oio-src checkout "$COMMIT"
+
+      - name: Check the OIO install
+        run: python .oio-src/.github/scripts/oio_installer.py --target "$GITHUB_WORKSPACE" --check
+
+  train:
+    name: Manifest agrees with the release train
+    uses: Pukujan/agent-stack-train/.github/workflows/check-adopter.yml@main
+    with:
+      manifest: stack-manifest.json

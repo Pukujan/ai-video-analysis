@@ -7,12 +7,16 @@ interpretations and would need a model_id and alternates that this pass cannot
 supply. A detected low-volume span is an AudioEvent(silence) and nothing more;
 the design docs forbid reading it as a comedic pause.
 
-Idempotency: claim ids are derived from the media hash, the tool and the record
-index, so rerunning over the same bytes reproduces the same ids. The run is
-keyed by ``run_id`` and re-ingesting replaces that run's rows rather than
-appending a duplicate.
+Idempotency: claim ids are derived from what a claim asserts (its interval and
+its verbatim evidence), not from its position, so rerunning over the same bytes
+reproduces the same ids. The run is keyed by ``run_id``, which carries the
+profile tag, and re-ingesting replaces that run's rows rather than appending a
+duplicate.
 
-The managed/ tree is never written to; the source manifest is read-only.
+Policy — thresholds, windowing and the profile identity — comes from the config
+layer (:mod:`harness.config`), not from module constants, so a new domain is a
+data change rather than a code change. The managed/ tree is never written to;
+the source manifest is read-only.
 """
 
 from __future__ import annotations
@@ -33,6 +37,7 @@ from typing import Any
 from pydantic import BaseModel
 
 from harness import __version__
+from harness.config import DEFAULT_CONFIG_DIR, AnalysisProfile, ConfigError, load_profile
 from harness.records import parse_record
 from harness.registry import sha256_file
 from harness.vocab import AudioEventKind, ContinuityClass, EpistemicLevel, Modality
@@ -54,15 +59,6 @@ __all__ = [
 
 _FFMPEG = "ffmpeg"
 _FFPROBE = "ffprobe"
-_FFMPEG_VERSION = "8.1.1"
-_POLICY = "det-v1:ebur128=peak;silencedetect=-32dB/0.4s;scene>0.4"
-_SILENCE_METHOD = f"ffmpeg {_FFMPEG_VERSION} silencedetect=noise=-32dB:d=0.4"
-_DEFAULT_WINDOW_MS = 25_000
-_DEFAULT_OVERLAP_MS = 5_000
-_SCENE_THRESHOLD = 0.4
-_CUT_SCORE_THRESHOLD = 0.6
-_SILENCE_NOISE_DB = -32.0
-_SILENCE_MIN_S = 0.4
 
 _I_RE = re.compile(r"^\s*I:\s*(-?\d+(?:\.\d+)?)\s*LUFS\s*$", re.MULTILINE)
 _LRA_RE = re.compile(r"^\s*LRA:\s*(-?\d+(?:\.\d+)?)\s*LU\s*$", re.MULTILINE)
@@ -132,6 +128,9 @@ class AnalysisReport:
     run_id: str
     video_id: str
     digest: str = ""
+    profile_id: str = ""
+    profile_version: str = ""
+    config_hash: str = ""
     records: list[tuple[str, BaseModel]] = field(default_factory=list)
     jsonl_path: Path | None = None
     duckdb_path: Path | None = None
@@ -247,9 +246,7 @@ def measure_loudness(video: Path) -> Loudness:
     )
 
 
-def detect_silences(
-    video: Path, noise_db: float = _SILENCE_NOISE_DB, min_s: float = _SILENCE_MIN_S
-) -> list[SilenceSpan]:
+def detect_silences(video: Path, noise_db: float, min_s: float) -> list[SilenceSpan]:
     """ffmpeg silencedetect -> measured silence spans."""
     _require(_FFMPEG)
     proc = _run(
@@ -286,7 +283,7 @@ def detect_silences(
     return spans
 
 
-def detect_scene_cuts(video: Path, threshold: float = _SCENE_THRESHOLD) -> list[SceneCut]:
+def detect_scene_cuts(video: Path, threshold: float) -> list[SceneCut]:
     """ffmpeg scene score -> candidate cut points with their scores.
 
     A scene-score peak is a visual discontinuity, not proof of an editorial cut:
@@ -328,9 +325,7 @@ def detect_scene_cuts(video: Path, threshold: float = _SCENE_THRESHOLD) -> list[
     return cuts
 
 
-def plan_coverage(
-    duration_ms: int, window_ms: int = _DEFAULT_WINDOW_MS, overlap_ms: int = _DEFAULT_OVERLAP_MS
-) -> list[tuple[int, int]]:
+def plan_coverage(duration_ms: int, window_ms: int, overlap_ms: int) -> list[tuple[int, int]]:
     """Overlapping local windows covering ``[0, duration_ms)`` with no gaps."""
     if window_ms <= 0 or overlap_ms < 0 or overlap_ms >= window_ms:
         raise AnalysisError("window must exceed overlap, and overlap must be non-negative")
@@ -410,9 +405,11 @@ def build_records(
     artifact_id: str,
     video_id: str,
     windows: list[tuple[int, int]],
+    profile: AnalysisProfile,
 ) -> tuple[list[tuple[str, BaseModel]], list[str]]:
     records: list[tuple[str, BaseModel]] = []
     warnings: list[str] = []
+    ffmpeg_version = profile.tooling.ffmpeg_version
 
     _emit(
         records,
@@ -432,6 +429,7 @@ def build_records(
         {
             "video_id": video_id,
             "source_artifact_id": artifact_id,
+            "game": profile.profile.game_label,
             "duration_ms": probe.duration_ms,
             "frame_rate": probe.frame_rate,
             "width": probe.width,
@@ -446,8 +444,11 @@ def build_records(
         {
             "run_id": run_id,
             "provider": _FFMPEG,
-            "model_id": f"{_FFMPEG}-{_FFMPEG_VERSION}",
-            "prompt_hash": _policy_hash(),
+            "model_id": f"{_FFMPEG}-{ffmpeg_version}",
+            "prompt_hash": _policy_hash(profile.policy_string()),
+            "profile_id": profile.profile.id,
+            "profile_version": profile.profile.version,
+            "config_hash": profile.config_hash(),
             "code_version": __version__,
             "frame_sample_policy": "none; deterministic signal + frame-difference analysis",
         },
@@ -467,7 +468,7 @@ def build_records(
                     0,
                     probe.duration_ms,
                     loudness.raw,
-                    f"ffmpeg {_FFMPEG_VERSION} ebur128=peak=true (ITU-R BS.1770-5 / EBU R 128)",
+                    f"ffmpeg {ffmpeg_version} ebur128=peak=true (ITU-R BS.1770-5 / EBU R 128)",
                     EpistemicLevel.E1_OBSERVATION,
                     run_id,
                 ),
@@ -491,7 +492,7 @@ def build_records(
                     span.start_ms,
                     span.end_ms,
                     span.raw,
-                    _SILENCE_METHOD,
+                    profile.silence_method(),
                     EpistemicLevel.E1_OBSERVATION,
                     run_id,
                 ),
@@ -502,10 +503,12 @@ def build_records(
         )
 
     frame_ms = max(1, int(round(1000.0 / probe.frame_rate))) if probe.frame_rate else 33
+    scene_threshold = profile.scene.threshold
+    cut_threshold = profile.scene.cut_score_threshold
     for cut in cuts:
         # A high score is very likely a hard editorial cut; a marginal one may
         # be camera motion or a game transition, so it stays "unknown".
-        edit_type = "cut" if cut.score >= _CUT_SCORE_THRESHOLD else "unknown"
+        edit_type = "cut" if cut.score >= cut_threshold else "unknown"
         _emit(
             records,
             "edit_event",
@@ -516,7 +519,7 @@ def build_records(
                     cut.at_ms,
                     cut.at_ms,
                     cut.raw,
-                    f"ffmpeg {_FFMPEG_VERSION} select gt(scene,{_SCENE_THRESHOLD})",
+                    f"ffmpeg {ffmpeg_version} select gt(scene,{scene_threshold})",
                     EpistemicLevel.E1_OBSERVATION,
                     run_id,
                     is_point=True,
@@ -529,8 +532,8 @@ def build_records(
                 "source_end_ms": None,
                 "continuity": ContinuityClass.UNCERTAIN.value,
                 "detection_method": (
-                    f"ffmpeg {_FFMPEG_VERSION} scene score {cut.score:.3f} "
-                    f"> {_SCENE_THRESHOLD}; cut threshold {_CUT_SCORE_THRESHOLD}"
+                    f"ffmpeg {ffmpeg_version} scene score {cut.score:.3f} "
+                    f"> {scene_threshold}; cut threshold {cut_threshold}"
                 ),
                 "visual_effect": None,
                 "tolerance_ms": frame_ms,
@@ -553,7 +556,7 @@ def build_records(
                     start,
                     end,
                     evidence,
-                    f"ffmpeg {_FFMPEG_VERSION} scene-score segmentation",
+                    f"ffmpeg {ffmpeg_version} scene-score segmentation",
                     EpistemicLevel.E1_OBSERVATION,
                     run_id,
                 ),
@@ -576,7 +579,8 @@ def build_records(
                 # Speech and comedy need a model and are not claimed here.
                 "modalities": [Modality.VISUAL.value, Modality.AUDIO.value],
                 "sampling_policy": (
-                    f"{_DEFAULT_WINDOW_MS}ms nominal, {_DEFAULT_OVERLAP_MS}ms overlap; "
+                    f"{profile.windowing.window_ms}ms nominal, "
+                    f"{profile.windowing.overlap_ms}ms overlap; "
                     "window covered by the whole-file deterministic pass, "
                     "not a window-local model call"
                 ),
@@ -589,8 +593,8 @@ def build_records(
     return records, warnings
 
 
-def _policy_hash() -> str:
-    return hashlib.sha256(_POLICY.encode("utf-8")).hexdigest()[:16]
+def _policy_hash(policy_string: str) -> str:
+    return hashlib.sha256(policy_string.encode("utf-8")).hexdigest()[:16]
 
 
 # --------------------------------------------------------------------------
@@ -697,20 +701,26 @@ def manifest_cross_check(video: Path, digest: str, manifest_path: Path) -> str |
     return None
 
 
-def analyze_video(video: Path, out_root: Path) -> AnalysisReport:
+def analyze_video(video: Path, out_root: Path, profile: AnalysisProfile) -> AnalysisReport:
     """Run the deterministic pass over one video and persist its records."""
     if not video.is_file():
         raise AnalysisError(f"no such file: {video}")
     digest = sha256_file(video)
     video_id = slugify(video.stem)
     artifact_id = f"art_{digest[:12]}"
-    run_id = f"run_{digest[:12]}_det_v1"
+    run_id = profile.run_id(digest)
 
     probe = probe_media(video)
     loudness = measure_loudness(video) if probe.has_audio else None
-    silences = detect_silences(video) if probe.has_audio else []
-    cuts = detect_scene_cuts(video)
-    windows = plan_coverage(probe.duration_ms)
+    silences = (
+        detect_silences(video, profile.silence.noise_db, profile.silence.min_s)
+        if probe.has_audio
+        else []
+    )
+    cuts = detect_scene_cuts(video, profile.scene.threshold)
+    windows = plan_coverage(
+        probe.duration_ms, profile.windowing.window_ms, profile.windowing.overlap_ms
+    )
 
     records, warnings = build_records(
         video.as_posix(),
@@ -724,10 +734,18 @@ def analyze_video(video: Path, out_root: Path) -> AnalysisReport:
         artifact_id,
         video_id,
         windows,
+        profile,
     )
 
     report = AnalysisReport(
-        run_id=run_id, video_id=video_id, digest=digest, records=records, warnings=warnings
+        run_id=run_id,
+        video_id=video_id,
+        digest=digest,
+        profile_id=profile.profile.id,
+        profile_version=profile.profile.version,
+        config_hash=profile.config_hash(),
+        records=records,
+        warnings=warnings,
     )
     report.jsonl_path = out_root / "raw" / "model_runs" / f"{run_id}.jsonl"
     report.duckdb_path = out_root / "data" / "analysis.duckdb"
@@ -747,6 +765,17 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--video", type=Path, action="append", required=True, dest="videos")
     parser.add_argument("--out-root", type=Path, default=Path.cwd())
     parser.add_argument(
+        "--profile",
+        default=None,
+        help="profile id under config/profiles/ (default: the base profile)",
+    )
+    parser.add_argument(
+        "--config-dir",
+        type=Path,
+        default=DEFAULT_CONFIG_DIR,
+        help="directory holding base.toml and profiles/ (default: the repo config/)",
+    )
+    parser.add_argument(
         "--manifest",
         type=Path,
         default=Path("managed/epistemic/SOURCES.json"),
@@ -754,10 +783,20 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
 
+    try:
+        profile = load_profile(args.profile, args.config_dir)
+    except ConfigError as exc:
+        print(f"FAILED config: {exc}", file=sys.stderr)
+        return 1
+    print(
+        f"profile: {profile.profile.id} v{profile.profile.version} "
+        f"({profile.config_hash()[:12]})"
+    )
+
     exit_code = 0
     for video in args.videos:
         try:
-            report = analyze_video(video, args.out_root)
+            report = analyze_video(video, args.out_root, profile)
         except AnalysisError as exc:
             print(f"FAILED {video}: {exc}", file=sys.stderr)
             exit_code = 1

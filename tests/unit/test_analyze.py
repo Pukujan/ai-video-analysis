@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import subprocess
 from pathlib import Path
 
@@ -23,7 +24,10 @@ from harness.analyze import (
     probe_media,
     slugify,
 )
+from harness.config import AnalysisProfile, load_profile
 from harness.records import RECORD_TYPES
+
+_FIXTURES = Path(__file__).resolve().parent / "fixtures"
 
 _EBUR128_STDERR = """
 [Parsed_ebur128_0 @ 000001e8138660c0] t: 574.599977 I: -18.2 LUFS LRA: 8.8 LU TPK: 0.6 dBFS
@@ -101,7 +105,7 @@ def test_detect_silences_pairs_spans(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(
         "harness.analyze._run", lambda cmd: _completed(stderr=_SILENCE_STDERR)
     )
-    spans = detect_silences(Path("x.mp4"))
+    spans = detect_silences(Path("x.mp4"), -32.0, 0.4)
     assert [(s.start_ms, s.end_ms) for s in spans] == [(0, 744), (5987, 6407)]
     assert all("@ 0x" not in s.raw for s in spans)
 
@@ -109,12 +113,12 @@ def test_detect_silences_pairs_spans(monkeypatch: pytest.MonkeyPatch) -> None:
 def test_detect_silences_ignores_unpaired_start(monkeypatch: pytest.MonkeyPatch) -> None:
     stderr = "[Parsed_silencedetect_0 @ 0x1] silence_start: 10.0\n"
     monkeypatch.setattr("harness.analyze._run", lambda cmd: _completed(stderr=stderr))
-    assert detect_silences(Path("x.mp4")) == []
+    assert detect_silences(Path("x.mp4"), -32.0, 0.4) == []
 
 
 def test_detect_scene_cuts_parses_scores(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr("harness.analyze._run", lambda cmd: _completed(stdout=_SCENE_STDOUT))
-    cuts = detect_scene_cuts(Path("x.mp4"))
+    cuts = detect_scene_cuts(Path("x.mp4"), 0.4)
     assert [(c.at_ms, round(c.score, 3)) for c in cuts] == [(15115, 1.0), (25459, 0.419)]
 
 
@@ -156,7 +160,9 @@ def test_slugify() -> None:
 # --------------------------------------------------------------------------
 
 
-def _build() -> tuple[list[tuple[str, object]], list[str]]:
+def _build(
+    profile: AnalysisProfile | None = None,
+) -> tuple[list[tuple[str, object]], list[str]]:
     return build_records(
         path="videos/ds3 ep 3.mp4",
         digest="a" * 64,
@@ -169,6 +175,7 @@ def _build() -> tuple[list[tuple[str, object]], list[str]]:
         artifact_id="art_" + "a" * 12,
         video_id="ds3_ep_3",
         windows=[(0, 25_000), (20_000, 45_000)],
+        profile=profile or load_profile(),
     )
 
 
@@ -260,6 +267,7 @@ def test_marginal_scene_score_is_unknown_not_cut() -> None:
         artifact_id="art_" + "a" * 12,
         video_id="v",
         windows=[],
+        profile=load_profile(),
     )
     edit = next(m for t, m in records if t == "edit_event").model_dump()
     assert edit["edit_type"] == "unknown"
@@ -285,6 +293,7 @@ def test_no_audio_skips_loudness_and_warns() -> None:
         artifact_id="art_" + "a" * 12,
         video_id="v",
         windows=[],
+        profile=load_profile(),
     )
     assert not any(t == "observation" for t, _ in records)
     assert any("no audio stream" in w for w in warnings)
@@ -307,9 +316,52 @@ def test_claim_ids_are_content_derived_not_index_based() -> None:
     assert all("cut_" in cid for cid in ids_a)
 
 
-def test_policy_hash_is_stable() -> None:
-    assert _policy_hash() == _policy_hash()
-    assert len(_policy_hash()) == 16
+def test_policy_hash_is_stable(base_profile: AnalysisProfile) -> None:
+    policy = base_profile.policy_string()
+    assert _policy_hash(policy) == _policy_hash(policy)
+    assert len(_policy_hash(policy)) == 16
+    assert _policy_hash(policy) == "4549e2f18465579f"
+
+
+def test_analysis_run_stamps_profile(base_profile: AnalysisProfile) -> None:
+    records, _ = _build(base_profile)
+    run = next(m for t, m in records if t == "analysis_run").model_dump()
+    assert run["profile_id"] == "base"
+    assert run["profile_version"] == "1.0.0"
+    assert run["config_hash"] == base_profile.config_hash()
+    assert len(run["config_hash"]) == 64
+
+
+def test_ds3_profile_stamps_identity_and_game(ds3_profile: AnalysisProfile) -> None:
+    records, _ = _build(ds3_profile)
+    run = next(m for t, m in records if t == "analysis_run").model_dump()
+    video = next(m for t, m in records if t == "reference_video").model_dump()
+    assert run["profile_id"] == "ds3"
+    assert run["config_hash"] == ds3_profile.config_hash()
+    assert video["game"] == "Dark Souls III"
+    # Thresholds are inherited unchanged, so classification does not move.
+    edit = next(m for t, m in records if t == "edit_event").model_dump()
+    assert edit["edit_type"] == "cut"
+
+
+def test_build_records_matches_pre_refactor_golden() -> None:
+    # The golden fixture was captured before the constants moved to config. The
+    # only permitted difference is the three fields the run now stamps.
+    records, _ = _build()
+    actual = [{"record_type": t, "data": m.model_dump(mode="json")} for t, m in records]
+    golden = [
+        json.loads(line)
+        for line in (_FIXTURES / "analyze_build_golden.jsonl").read_text("utf-8").splitlines()
+    ]
+    assert len(actual) == len(golden)
+    added = {"profile_id", "profile_version", "config_hash"}
+    for got, want in zip(actual, golden, strict=True):
+        assert got["record_type"] == want["record_type"]
+        got_data = dict(got["data"])
+        if want["record_type"] == "analysis_run":
+            for key in added:
+                got_data.pop(key)
+        assert got_data == want["data"]
 
 
 # --------------------------------------------------------------------------

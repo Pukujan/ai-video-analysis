@@ -12,10 +12,18 @@ import re
 from enum import StrEnum
 
 __all__ = [
+    "ArtifactKind",
+    "AudioEventKind",
+    "ComedyMechanism",
+    "ContinuityClass",
     "EditType",
+    "EntityKind",
     "EpistemicLevel",
     "Modality",
+    "MusicStatus",
+    "NarrativeRole",
     "RelationKind",
+    "ResponseDecision",
     "ReviewStatus",
     "SpanKind",
     "VocabError",
@@ -103,6 +111,112 @@ class EditType(StrEnum):
     ZOOM = "zoom"
     OVERLAY = "overlay"
     UNKNOWN = "unknown"
+
+
+class ArtifactKind(StrEnum):
+    """What a registered source artifact is (DATA_MODEL.md record 1)."""
+
+    VIDEO = "video"
+    AUDIO = "audio"
+    TRANSCRIPT = "transcript"
+    MODEL_EXPORT = "model_export"
+    CHAT_EXPORT = "chat_export"
+    OTHER = "other"
+
+
+class EntityKind(StrEnum):
+    """Kinds of recurring target (DATA_MODEL.md record 19)."""
+
+    NPC = "npc"
+    ENEMY = "enemy"
+    MONSTER = "monster"
+    BOSS = "boss"
+    LOOT = "loot"
+    ITEM = "item"
+    MOTIF = "motif"
+    LOCATION = "location"
+    PERSONA = "persona"
+
+
+class ResponseDecision(StrEnum):
+    """What the narrator does at a beat (DATA_MODEL.md record 13)."""
+
+    SPEAK = "speak"
+    REACT = "react"
+    LAUGH = "laugh"
+    SILENT = "silent"
+    DELEGATE_SFX = "delegate_sfx"
+    NONE = "none"
+
+
+class MusicStatus(StrEnum):
+    """Foreground/underscoring role, or that the cue is unknown (record 17)."""
+
+    FOREGROUND = "foreground"
+    UNDERSCORING = "underscoring"
+    ABSENT = "absent"
+    UNKNOWN = "unknown"
+
+
+class AudioEventKind(StrEnum):
+    """Kinds of audio event (DATA_MODEL.md record 16)."""
+
+    SPEECH = "speech"
+    AMBIENCE = "ambience"
+    SFX = "sfx"
+    SILENCE = "silence"
+    PEAK = "peak"
+    TRANSIENT = "transient"
+
+
+class ContinuityClass(StrEnum):
+    """Whether a span is an editorial cut, in-game transition or continuous.
+
+    The design docs require distinguishing true editorial cuts from game
+    transitions, loading screens and camera motion, and marking uncertain cases.
+    """
+
+    EDITORIAL_CUT = "editorial_cut"
+    GAME_TRANSITION = "game_transition"
+    CONTINUOUS = "continuous"
+    LOADING = "loading"
+    UNCERTAIN = "uncertain"
+
+
+class NarrativeRole(StrEnum):
+    """Where a beat sits in an arc (DATA_MODEL.md record 10)."""
+
+    SETUP = "setup"
+    CALLBACK = "callback"
+    PAYOFF = "payoff"
+    RUNNING_GAG = "running_gag"
+    ESCALATION = "escalation"
+    ISOLATED = "isolated"
+    UNKNOWN = "unknown"
+
+
+class ComedyMechanism(StrEnum):
+    """How a beat is funny; a beat may carry several labels (record 10).
+
+    Open-ended by nature, so ``ext:<slug>`` slots absorb mechanisms this list
+    does not yet name without letting a typo in as a bare string.
+    """
+
+    IRONY = "irony"
+    SARCASM = "sarcasm"
+    WORDPLAY = "wordplay"
+    PERSONIFICATION = "personification"
+    ANTHROPOMORPHISM = "anthropomorphism"
+    UNDERSTATEMENT = "understatement"
+    HYPERBOLE = "hyperbole"
+    CALLBACK = "callback"
+    INCONGRUITY = "incongruity"
+    JUXTAPOSITION = "juxtaposition"
+    MISDIRECTION = "misdirection"
+    DEADPAN = "deadpan"
+    ABSURDISM = "absurdism"
+    SELF_DEPRECATION = "self_deprecation"
+    ESCALATION = "escalation"
 
 
 def is_extension_token(value: str) -> bool:

@@ -230,7 +230,15 @@ def measure_loudness(video: Path) -> Loudness:
     if not (i_match and lra_match and peak_match):
         raise AnalysisError(f"could not parse ebur128 summary for {video.name}")
     summary = text[text.rfind("Summary:") :] if "Summary:" in text else text
-    verbatim = " ".join(line.strip() for line in summary.splitlines() if line.strip())
+    # Keep only the measurement block; the trailing "[out#0/...] ... speed="
+    # line carries a per-run pointer and elapsed time.
+    measured_lines: list[str] = []
+    for line in summary.splitlines():
+        if line.lstrip().startswith("["):
+            break
+        if line.strip():
+            measured_lines.append(line.strip())
+    verbatim = " ".join(measured_lines)
     return Loudness(
         integrated_lufs=float(i_match.group(1)),
         loudness_range_lu=float(lra_match.group(1)),

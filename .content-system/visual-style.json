@@ -1,0 +1,26 @@
+{
+  "schema_version": "content-generation.visual-style.v1",
+  "reference_asset": "managed/sources/reference-01/user-provided-timestamped-transcript.txt",
+  "generation_workflow": "built-in image_gen",
+  "narrative_roles": ["hero", "problem", "supporting"],
+  "palette": {
+    "background": "#101014",
+    "surface": "#1b1b22",
+    "accent": "#7c5cff"
+  },
+  "roles": {
+    "supporting": {
+      "purpose": "diagrams in issues or pull requests that explain the event ontology, coverage windows or evidence links; not product marketing"
+    },
+    "brand-reference": {
+      "purpose": "the archived reference transcript is the only visual/audio anchor in the repository; no brand art is generated for this project"
+    }
+  },
+  "reject_when": [
+    "fake metrics or invented precision numbers",
+    "an image that presents an interpretation as if it were an observation",
+    "decorative complexity without meaning",
+    "tiny unreadable labels on a phone screen",
+    "screenshots that show keys, tokens or private file paths"
+  ]
+}

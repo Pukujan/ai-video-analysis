@@ -1,0 +1,24 @@
+{
+  "schema_version": "oio.install-manifest.v1",
+  "oio_version": "0.1.0",
+  "ontology_id": "oio:issue-log",
+  "ontology_version": "1.0.0",
+  "project_id": "Pukujan/ai-video-analysis",
+  "namespace": "pukujan-ai-video-analysis",
+  "managed_files": {
+    ".oio/ontology/default.json": "1bdc52ae069d4e695adc6b628b9d4eda01947b5be3513f95ddf0808ee683807a",
+    ".oio/ontology/project-template.json": "d6931ff189d4bdf2cbeb8984bb7b7301ffbde8efb565ceca4f1e833122e52fca",
+    ".oio/ontology/ISSUE_LOG_ONTOLOGY.md": "db36a3a928b8ad0f0644ee6453474dfb38dcf689c2cd589d63b4425dbc127595",
+    ".oio/ontology/AGENT_GUIDE.md": "8dcc32385cd805a1af73a60a95642c15a0fb2f842c0ccec0bab16b03c7102b89",
+    ".oio/requirements.txt": "373dd495566d5da33b2e830ac8588528e2f5ebf67ad312a4219618d6fcfadb9f",
+    ".oio/schemas/v1/default-ontology.schema.json": "4ce1a0331b1600377c422408276adfcd1ca25d497f3e0253b8e55f055c94625a",
+    ".oio/schemas/v1/project-ontology.schema.json": "d5aebd57abc1e1b6a9218acd664dc7f59b4dabeea62916ae3e8a56d772cba551",
+    ".oio/schemas/v1/issue-log-record.schema.json": "8391e03cb44b414f8aadd9ccbf15308ea07f98dbb974a3f7f326848613490f6a",
+    ".github/ISSUE_TEMPLATE/observational-issue.yml": "15ea138edcf630b4eacf02774373577aa903ff8b9a29317630ab03f68ea5d1d5",
+    ".github/workflows/issue-triage.yml": "1698b30757e2119dda9769ad4d54db73c58001475a9222195793137a24d60cc5",
+    ".github/scripts/oio_installer.py": "fe6e67f6896557d8fb483280929104cc23819976355192d222d730560ac3f0e8",
+    ".github/scripts/oio_triage.py": "8b37e0de876d9c0232f800a2babce168e5adb54484d6e9d6cc673524ab589323"
+  },
+  "agents_block_sha256": "dd08b0a68f4af90c53d164dfdde8dc1996547193a2404965bf4c4adeffa5b9dc",
+  "project_extension": ".oio/ontology/project.json"
+}

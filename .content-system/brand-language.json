@@ -1,0 +1,17 @@
+{
+  "schema_version": "content-generation.brand-language.v1",
+  "name": "AI Video Analysis (Pukujan)",
+  "personality": ["plain", "curious", "evidence-first"],
+  "promise": "An evidence-first archive and analysis harness that turns edited gaming VODs into reusable style knowledge, so the user's own gameplay can be narrated and edited the way the references are.",
+  "avoid": [
+    "claiming a joke, sarcasm or emotion was detected without linked evidence",
+    "presenting an interpretation as an observation",
+    "guessing words the caption transcript marks as [ __ ]",
+    "claiming music identity from acoustic similarity alone",
+    "inventing frame-accurate edit boundaries",
+    "fake metrics or invented precision numbers",
+    "speaking for the creators whose videos are analyzed",
+    "unexplained acronyms",
+    "showing keys, tokens or private file paths"
+  ]
+}

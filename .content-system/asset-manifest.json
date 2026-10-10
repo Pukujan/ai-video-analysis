@@ -1,0 +1,15 @@
+{
+  "schema_version": "content-generation.asset-manifest.v1",
+  "system_version": "0.5.12",
+  "assets": [
+    {
+      "path": "managed/sources/reference-01/user-provided-timestamped-transcript.txt",
+      "role": "brand-reference",
+      "orientation": "text",
+      "dimensions": "n/a",
+      "text_policy": "User-supplied timestamped transcript, kept byte-identical; no generated captions or claims overlaid.",
+      "review": "archive",
+      "source": "The one primary visual/audio anchor held in the repository; listed so project documents reference the archived evidence instead of generating new brand images. Not a generated narrative asset. The 46 MB source video is recorded by hash only and is not committed."
+    }
+  ]
+}

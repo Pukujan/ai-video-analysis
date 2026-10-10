@@ -1,0 +1,26 @@
+{
+  "schema_version": "content-generation.review-rubric.v1",
+  "dimensions": [
+    {
+      "id": "grounding",
+      "question": "Does every derived claim cite a source id and a time interval, quote, frame or audio segment, and a method?"
+    },
+    {
+      "id": "honesty",
+      "question": "Are fact, inference, hypothesis and corrected analysis kept in separate fields, with uncertainty and counterexamples preserved?"
+    },
+    {
+      "id": "no-false-precision",
+      "question": "Are edit boundaries and metrics reported with their estimation method and tolerance, and never as met before measured?"
+    },
+    {
+      "id": "immutability",
+      "question": "Are original sources and historical analyses left byte-identical, with corrections added as new linked records?"
+    },
+    {
+      "id": "safety",
+      "question": "Are keys, tokens and private file paths kept out of the repository and out of issue text?"
+    }
+  ],
+  "decision_rule": "human review plus deterministic repository gates"
+}

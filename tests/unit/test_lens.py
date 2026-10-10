@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from harness.backend import Completion, MalformedReply, Request
+from harness.backend import BackendError, Completion, MalformedReply, Request
 from harness.clips import WindowMedia
 from harness.config import load_profile
 from harness.lens import (
@@ -227,6 +227,20 @@ def test_asr_clamps_a_start_on_the_window_end(tmp_path: Path) -> None:
     records = lens.run((140_000, 165_000), _media(tmp_path), _ctx(), (), backend)
     utterance = next(m for t, m in records if t == "utterance").model_dump()
     assert utterance["start_ms"] < utterance["end_ms"]
+
+
+def test_asr_transport_error_is_not_reasked(tmp_path: Path) -> None:
+    """Only a reply-shape failure earns the re-ask; a transport error does not.
+
+    Pins the boundary: the lenses catch ``(RecordError, MalformedReply)``. A
+    plain ``BackendError`` (HTTP/transport) must pass straight through, so a
+    later change that widens the catch to ``BackendError`` fails here.
+    """
+    lens = TranscriptLens(None, _MODEL)
+    backend = _StubBackend(BackendError("HTTP 500: internal server error"))
+    with pytest.raises(BackendError):
+        lens.run((0, 5_000), _media(tmp_path), _ctx(), (), backend)
+    assert len(backend.prompts) == 1
 
 
 # --------------------------------------------------------------------------
@@ -526,6 +540,37 @@ def test_unknown_quote_source_is_rejected(tmp_path: Path) -> None:
     lens = InterpretationLens(_MODEL)
     with pytest.raises(RecordError, match="quote_source"):
         lens.parse(_beat("q", "vibes"), (0, 25_000), _ctx(), utterances=())
+
+
+def test_interpretation_clamps_a_start_past_the_window(tmp_path: Path) -> None:
+    """A hallucinated timestamp beyond the clip is clamped, not failed.
+
+    Same defect as the ASR path: an unclamped ``start`` past ``window[1]``
+    inverted the interval and failed the window. Both ends clamp.
+    """
+    lens = InterpretationLens(_MODEL)
+    records = lens.parse(
+        _beat("q", "audio", start_ms=25_300, end_ms=26_000),
+        (140_000, 165_000),
+        _ctx(),
+        utterances=(),
+    )
+    beat = next(m for t, m in records if t == "comedy_beat").model_dump()
+    assert beat["media_start_ms"] < beat["media_end_ms"]
+    assert beat["media_start_ms"] >= 140_000 and beat["media_end_ms"] <= 165_000
+
+
+def test_interpretation_clamps_a_start_on_the_window_end(tmp_path: Path) -> None:
+    """A start landing exactly on ``window[1]`` still yields a valid interval."""
+    lens = InterpretationLens(_MODEL)
+    records = lens.parse(
+        _beat("q", "audio", start_ms=25_000, end_ms=25_000),
+        (140_000, 165_000),
+        _ctx(),
+        utterances=(),
+    )
+    beat = next(m for t, m in records if t == "comedy_beat").model_dump()
+    assert beat["media_start_ms"] < beat["media_end_ms"]
 
 
 def test_interpretation_non_json_reply_is_reasked_once(tmp_path: Path) -> None:

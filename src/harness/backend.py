@@ -11,7 +11,10 @@ lens. The provider's gate is *probabilistic* — the identical profane window
 was rejected once and accepted on the next three runs — so a single rejection
 is not a fact about the media. We retry a gate trip up to three attempts, with
 no sleep, and only then raise :class:`GateTripped` carrying the provider's
-reason. Non-gate failures (auth, 5xx, timeout, malformed JSON) are not retried.
+reason. Non-gate failures (auth, 5xx, timeout) are not retried here; a reply
+that is not JSON raises :class:`MalformedReply`, which this seam still does not
+retry — a lens re-asks it once as a reply-shape failure, the same treatment a
+missing field or an unknown label gets.
 
 Keys are read from the user's config files and are never printed, logged, or
 interpolated into an exception.
@@ -56,7 +59,7 @@ _PROVIDERS = ("inferhub", "openrouter")
 
 
 class BackendError(RuntimeError):
-    """An unrecoverable backend failure: auth, transport, or malformed reply."""
+    """An unrecoverable backend failure: auth, transport, or an unexpected shape."""
 
 
 class MalformedReply(BackendError):

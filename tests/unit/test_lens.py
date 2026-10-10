@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 
+from harness.backend import Completion, Request
 from harness.clips import WindowMedia
 from harness.config import load_profile
 from harness.lens import (
@@ -89,6 +90,58 @@ def test_asr_mode_used_when_no_transcript(tmp_path: Path) -> None:
     lens = TranscriptLens(None, _MODEL)
     assert lens.mode == "asr"
     assert lens.run((0, 5_000), _media(tmp_path), _ctx(), (), None) == []  # no backend
+
+
+class _StubBackend:
+    """Returns scripted completions, recording the prompts it was sent."""
+
+    def __init__(self, *contents: dict) -> None:
+        self.contents = list(contents)
+        self.prompts: list[str] = []
+
+    def complete(self, request: Request) -> Completion:
+        self.prompts.append(request.prompt)
+        return Completion(self.contents.pop(0), _MODEL, {}, 1)
+
+
+def test_asr_emits_utterances_and_words(tmp_path: Path) -> None:
+    lens = TranscriptLens(None, _MODEL)
+    backend = _StubBackend(
+        {"utterances": [{"start_ms": 0, "end_ms": 2_000, "text": "hello there"}]}
+    )
+    records = lens.run((0, 5_000), _media(tmp_path), _ctx(), (), backend)
+    types = [t for t, _ in records]
+    assert types.count("utterance") == 1
+    utterance = next(m for t, m in records if t == "utterance").model_dump()
+    assert utterance["raw_text"] == "hello there"
+    assert utterance["alignment_method"] == f"asr:{_MODEL}"
+
+
+def test_malformed_asr_reply_is_a_record_error_not_a_crash(tmp_path: Path) -> None:
+    """A reply missing a timestamp must fail the *reply*, not raise a raw error.
+
+    ``_asr_records`` used to do ``int(item["start_ms"])``, so a model that
+    omitted the field raised ``KeyError`` — which escapes the per-window loop
+    and kills the whole video. It is normalized to ``RecordError`` now.
+    """
+    lens = TranscriptLens(None, _MODEL)
+    bad = {"utterances": [{"end_ms": 1_000, "text": "x"}]}
+    backend = _StubBackend(bad, bad)
+    with pytest.raises(RecordError):
+        lens.run((0, 5_000), _media(tmp_path), _ctx(), (), backend)
+    assert len(backend.prompts) == 2  # the re-ask ran; it stayed malformed
+
+
+def test_asr_reasks_once_on_a_malformed_reply(tmp_path: Path) -> None:
+    lens = TranscriptLens(None, _MODEL)
+    backend = _StubBackend(
+        {"utterances": "not a list"},
+        {"utterances": [{"start_ms": 0, "end_ms": 1_000, "text": "recovered"}]},
+    )
+    records = lens.run((0, 5_000), _media(tmp_path), _ctx(), (), backend)
+    assert len(backend.prompts) == 2
+    assert "rejected" in backend.prompts[1]
+    assert next(m for t, m in records if t == "utterance").model_dump()["raw_text"] == "recovered"
 
 
 # --------------------------------------------------------------------------

@@ -219,7 +219,9 @@ class TranscriptLens:
     ) -> list[Record]:
         if self.mode == "supplied":
             return self._supplied(window, ctx)
-        return self._asr(window, media, ctx, backend)
+        if backend is None or not media.has_audio:
+            return []
+        return self._asr_with_reask(window, media, ctx, backend)
 
     # -- supplied producer: no model call ---------------------------------
 
@@ -257,16 +259,31 @@ class TranscriptLens:
 
     # -- asr producer: one model call -------------------------------------
 
-    def _asr(
+    def _asr_with_reask(
         self,
         window: tuple[int, int],
         media: WindowMedia,
         ctx: LensContext,
-        backend: Backend | None,
+        backend: Backend,
     ) -> list[Record]:
-        if backend is None or not media.has_audio:
-            return []
-        request = Request(
+        """One ASR call, with the same one-re-ask as the interpretation lens.
+
+        A malformed reply is normalized to ``RecordError`` in ``_asr_records``,
+        so it is a *reply-shape* failure the orchestrator can record — never a
+        raw ``KeyError`` that escapes the per-window loop and kills the video.
+        """
+        request = self._asr_request(media)
+        completion = backend.complete(request)
+        try:
+            return self._asr_records(completion.content, window, ctx)
+        except RecordError as exc:
+            retry = replace(
+                request, prompt=f"{request.prompt}\n\nYour previous reply was rejected: {exc}"
+            )
+            return self._asr_records(backend.complete(retry).content, window, ctx)
+
+    def _asr_request(self, media: WindowMedia) -> Request:
+        return Request(
             model=self.model,
             prompt=(
                 "Transcribe the spoken words in this clip. Return JSON: "
@@ -293,15 +310,28 @@ class TranscriptLens:
                 "required": ["utterances"],
             },
         )
-        completion = backend.complete(request)
+
+    def _asr_records(
+        self,
+        content: dict[str, Any],
+        window: tuple[int, int],
+        ctx: LensContext,
+    ) -> list[Record]:
+        items = content.get("utterances") if isinstance(content, dict) else None
+        if not isinstance(items, list):
+            raise RecordError("ASR reply must be an object with an 'utterances' array")
         start = window[0]
         records: list[Record] = []
-        for item in completion.content.get("utterances", []):
+        for item in items:
+            if not isinstance(item, dict):
+                raise RecordError(
+                    f"each ASR utterance must be an object, got {type(item).__name__}"
+                )
             text = str(item.get("text", "")).strip()
             if not text:
                 continue
-            s = start + int(item["start_ms"])
-            e = min(start + int(item["end_ms"]), window[1])
+            s = start + _ms(item, "start_ms")
+            e = min(start + _ms(item, "end_ms"), window[1])
             if e <= s:
                 e = min(s + 1, window[1])
             utterance_id = f"u_{ctx.video_id}_{_anchor(s, text)}"

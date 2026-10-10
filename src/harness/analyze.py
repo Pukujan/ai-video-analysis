@@ -28,7 +28,6 @@ import re
 import shutil
 import subprocess
 import sys
-from collections.abc import Iterable
 from dataclasses import dataclass, field
 from fractions import Fraction
 from pathlib import Path
@@ -38,6 +37,7 @@ from pydantic import BaseModel
 
 from harness import __version__
 from harness.config import DEFAULT_CONFIG_DIR, AnalysisProfile, ConfigError, load_profile
+from harness.persist import write_jsonl, write_parquet, write_store
 from harness.records import parse_record
 from harness.registry import sha256_file
 from harness.vocab import AudioEventKind, ContinuityClass, EpistemicLevel, Modality
@@ -54,6 +54,8 @@ __all__ = [
     "detect_silences",
     "detect_scene_cuts",
     "plan_coverage",
+    "require_tool",
+    "run_ffmpeg",
     "slugify",
 ]
 
@@ -145,14 +147,16 @@ class AnalysisReport:
         return tally
 
 
-def _require(tool: str) -> str:
+def require_tool(tool: str) -> str:
+    """The absolute path of ``tool`` on PATH, or raise ``AnalysisError``."""
     found = shutil.which(tool)
     if found is None:
         raise AnalysisError(f"{tool} not found on PATH")
     return found
 
 
-def _run(cmd: list[str]) -> subprocess.CompletedProcess[str]:
+def run_ffmpeg(cmd: list[str]) -> subprocess.CompletedProcess[str]:
+    """Run an external command, capturing text output (utf-8, errors replaced)."""
     return subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
 
 
@@ -163,8 +167,8 @@ def _run(cmd: list[str]) -> subprocess.CompletedProcess[str]:
 
 def probe_media(video: Path) -> MediaProbe:
     """ffprobe -> duration, frame rate, resolution and both timebases."""
-    _require(_FFPROBE)
-    proc = _run(
+    require_tool(_FFPROBE)
+    proc = run_ffmpeg(
         [
             _FFPROBE,
             "-v",
@@ -203,8 +207,8 @@ def probe_media(video: Path) -> MediaProbe:
 
 def measure_loudness(video: Path) -> Loudness:
     """ffmpeg ebur128 (ITU-R BS.1770 / EBU R 128) -> I, LRA and true peak."""
-    _require(_FFMPEG)
-    proc = _run(
+    require_tool(_FFMPEG)
+    proc = run_ffmpeg(
         [
             _FFMPEG,
             "-nostdin",
@@ -248,8 +252,8 @@ def measure_loudness(video: Path) -> Loudness:
 
 def detect_silences(video: Path, noise_db: float, min_s: float) -> list[SilenceSpan]:
     """ffmpeg silencedetect -> measured silence spans."""
-    _require(_FFMPEG)
-    proc = _run(
+    require_tool(_FFMPEG)
+    proc = run_ffmpeg(
         [
             _FFMPEG,
             "-nostdin",
@@ -290,8 +294,8 @@ def detect_scene_cuts(video: Path, threshold: float) -> list[SceneCut]:
     combat flashes, camera motion and menus also spike it. Callers must classify
     the result as uncertain. Scores are emitted to stdout via ``metadata=print``.
     """
-    _require(_FFMPEG)
-    proc = _run(
+    require_tool(_FFMPEG)
+    proc = run_ffmpeg(
         [
             _FFMPEG,
             "-nostdin",
@@ -602,81 +606,6 @@ def _policy_hash(policy_string: str) -> str:
 # --------------------------------------------------------------------------
 
 
-def _write_jsonl(path: Path, records: Iterable[tuple[str, BaseModel]]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("w", encoding="utf-8") as handle:
-        for record_type, model in records:
-            handle.write(
-                json.dumps({"record_type": record_type, "data": model.model_dump(mode="json")})
-                + "\n"
-            )
-
-
-def _write_store(duckdb_path: Path, report: AnalysisReport) -> None:
-    import duckdb
-
-    duckdb_path.parent.mkdir(parents=True, exist_ok=True)
-    con = duckdb.connect(str(duckdb_path))
-    try:
-        con.execute(
-            """
-            CREATE TABLE IF NOT EXISTS records (
-                run_id VARCHAR,
-                video_id VARCHAR,
-                record_type VARCHAR,
-                record_id VARCHAR,
-                start_ms BIGINT,
-                end_ms BIGINT,
-                epistemic_level VARCHAR,
-                payload JSON
-            )
-            """
-        )
-        con.execute("DELETE FROM records WHERE run_id = ?", [report.run_id])
-        rows = []
-        for record_type, model in report.records:
-            data = model.model_dump(mode="json")
-            record_id = (
-                data.get("claim_id")
-                or data.get("artifact_id")
-                or data.get("video_id")
-                or data.get("window_id")
-                or data.get("run_id")
-                or ""
-            )
-            start = data.get("media_start_ms", data.get("start_ms", data.get("output_start_ms")))
-            end = data.get("media_end_ms", data.get("end_ms", data.get("output_end_ms")))
-            rows.append(
-                (
-                    report.run_id,
-                    report.video_id,
-                    record_type,
-                    record_id,
-                    start,
-                    end,
-                    data.get("epistemic_level"),
-                    json.dumps(data),
-                )
-            )
-        con.executemany("INSERT INTO records VALUES (?, ?, ?, ?, ?, ?, ?, ?)", rows)
-    finally:
-        con.close()
-
-
-def _write_parquet(duckdb_path: Path, parquet_path: Path, run_id: str) -> None:
-    import duckdb
-
-    parquet_path.parent.mkdir(parents=True, exist_ok=True)
-    con = duckdb.connect(str(duckdb_path))
-    try:
-        con.execute(
-            f"COPY (SELECT * FROM records WHERE run_id = '{run_id}') "
-            f"TO '{parquet_path.as_posix()}' (FORMAT PARQUET)"
-        )
-    finally:
-        con.close()
-
-
 def manifest_cross_check(video: Path, digest: str, manifest_path: Path) -> str | None:
     """Report-only: does this file match a manifest entry's recorded hash/size?
 
@@ -751,10 +680,18 @@ def analyze_video(video: Path, out_root: Path, profile: AnalysisProfile) -> Anal
     report.duckdb_path = out_root / "data" / "analysis.duckdb"
     report.parquet_path = out_root / "exports" / f"{video_id}.parquet"
 
-    _write_jsonl(report.jsonl_path, records)
-    _write_store(report.duckdb_path, report)
-    _write_parquet(report.duckdb_path, report.parquet_path, run_id)
+    _write_outputs(report, records)
     return report
+
+
+def _write_outputs(report: AnalysisReport, records: list[tuple[str, BaseModel]]) -> None:
+    """Persist one run's three artifacts through the shared writers."""
+    assert report.jsonl_path is not None
+    assert report.duckdb_path is not None
+    assert report.parquet_path is not None
+    write_jsonl(report.jsonl_path, records)
+    write_store(report.duckdb_path, report.run_id, report.video_id, records)
+    write_parquet(report.duckdb_path, report.parquet_path, report.run_id)
 
 
 def main(argv: list[str] | None = None) -> int:

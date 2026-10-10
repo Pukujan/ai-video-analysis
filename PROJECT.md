@@ -20,26 +20,26 @@ From the archived turns in [`managed/sources/chat/early-user-turns.md`](managed/
 
 ## What exists today
 
-This repository is an **archive plus a running deterministic pass**. What is committed:
+This repository is an **archive plus a running two-pass harness**: a deterministic measurement pass and a model-backed extraction pass. What is committed:
 
 - **Primary evidence (immutable).** One reference video's timestamped transcript, a pasted conversation export, and the earlier user turns, each preserved byte-for-byte and hashed in [`managed/epistemic/SOURCES.json`](managed/epistemic/SOURCES.json). The 46 MB source video is not committed; only its hash and metadata are recorded.
 - **Historical analyses (not ground truth).** Three versions of model-derived analysis of reference 01, kept side by side and explicitly not merged or corrected.
 - **Design proposals.** The harness brief ([`HARNESS_SPEC.md`](managed/design/HARNESS_SPEC.md)), the event ontology ([`DATA_MODEL.md`](managed/design/DATA_MODEL.md)), the validation plan ([`VALIDATION.md`](managed/design/VALIDATION.md)) and the voice-quality brief ([`VOICE_QUALITY.md`](managed/design/VOICE_QUALITY.md)).
 - **A running harness core and deterministic pass.** [`src/harness/`](src/harness) holds the record types, the controlled vocabularies and timebase, the immutable source registry, the versioned profile config and the ffmpeg analysis pass. `python -m harness.analyze --video <path>` measures a video into validated records and writes a local DuckDB store plus a Parquet export. The layer map is [`managed/design/ARCHITECTURE.md`](managed/design/ARCHITECTURE.md).
+- **A running model-backed extraction pass (speech + comedy).** `python -m harness.extract --video <path> --profile ds3` cuts each coverage window into a clip and runs three lenses over it: the transcript lens (the supplied timestamped transcript for the reference episode, ASR for the others), the delivery lens (ffmpeg acoustics, no model) and the interpretation lens (one multimodal call per window). It emits `utterance`, `word_alignment`, `evidence_span`, `comedy_beat`, `vocal_delivery` and `response_decision` into the same store under its own run-id namespace, so both passes for one video coexist. The design is [`managed/design/EXTRACTION.md`](managed/design/EXTRACTION.md).
 
-What remains unbuilt is the model-backed half: multimodal extraction, the correction UI and the holdout set. The data model, the phases and the metrics are still proposals with target values; only the deterministic measurements are demonstrated.
+What remains unbuilt is the rest of the model-backed half — the visual, music and entity extraction slices — plus the correction UI and the holdout set. The data model, the phases and the metrics are still proposals with target values; the demonstrated parts are the deterministic measurements and the speech-and-comedy extraction slice.
 
 ## What is proposed (not yet built)
 
 Per the design briefs, the intended system is small and local:
 
-- Multi-lens dense extraction (speech, gameplay state, editorial cuts, audio mix/music, humor and deliberate non-jokes), with an independent transcript pass.
-- An adaptable BYOK multimodal backend whose provider version is recorded per run.
+- The remaining extraction lenses — gameplay state, character state, editorial cuts, audio mix/music, entities/relations and style patterns — beyond the speech-and-comedy slice that is built.
 - A minimal correction interface and a locked holdout set for evaluation.
 
 Only after that: narration and edit generation, rendering, and blind human preference tests.
 
-Already built, and mapped in [`managed/design/ARCHITECTURE.md`](managed/design/ARCHITECTURE.md): the immutable source registry with byte hashes, the ffmpeg/ffprobe preprocessor, the coverage planner over overlapping windows, the versioned profile config, and the local DuckDB store with Parquet exports.
+Already built, and mapped in [`managed/design/ARCHITECTURE.md`](managed/design/ARCHITECTURE.md): the immutable source registry with byte hashes, the ffmpeg/ffprobe preprocessor, the coverage planner over overlapping windows, the versioned profile config, the local DuckDB store with Parquet exports, and the speech-and-comedy extraction pass behind the BYOK multimodal backend seam.
 
 ## Boundaries
 
@@ -56,4 +56,4 @@ Every derived claim carries: `claim_id, source_id, media_start_ms, media_end_ms,
 
 ## Next unit of work
 
-The deterministic pass and its config/profile layer are in. The next unit is the model-backed extraction pass — the multi-lens dense extraction that produces the remaining substrate and derived record types — behind the BYOK backend seam, with the coverage planner driving per-window calls. See the `proposed` rows in [`managed/design/ARCHITECTURE.md`](managed/design/ARCHITECTURE.md).
+The deterministic pass, its config/profile layer, and the speech-and-comedy extraction slice are in. The next unit is the next extraction slice — the visual and gameplay lens (`gameplay_event`, `character_state`, `narrative_entity`, `event_relation`), which needs longer visual context than a single window — reusing the same backend seam, lens protocol and per-window orchestration. See the `proposed` rows in [`managed/design/ARCHITECTURE.md`](managed/design/ARCHITECTURE.md).

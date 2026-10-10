@@ -14,6 +14,7 @@ This folder is the canonical workspace for the gaming-video analysis research di
 - epistemic/SOURCES.json — source manifest, hashes and known gaps.
 - design/ARCHITECTURE.md — system map: layer → module → record types → spec doc.
 - design/HARNESS_SPEC.md — design decisions across the discussion.
+- design/EXTRACTION.md — the model-backed extraction pass: lenses, backend seam, error handling.
 - design/DATA_MODEL.md — event ontology, music/edit/speech linkage.
 - design/PROFILES.md — the config/control layer: profiles, thresholds, vocabulary.
 - design/VALIDATION.md — test strategy and evaluation principles.

@@ -4,6 +4,7 @@ transcripts/
 raw/
 data/
 exports/
+clips/
 *.duckdb
 *.duckdb.wal
 *.parquet

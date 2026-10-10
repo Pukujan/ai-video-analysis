@@ -1,0 +1,33 @@
+# Working data — never committed (see managed/design/DATA_MODEL.md, Physical layout)
+media/
+transcripts/
+raw/
+data/
+exports/
+*.duckdb
+*.duckdb.wal
+*.parquet
+
+# Model-run raw output can be large; keep it local, commit curated exports only
+raw/model_runs/
+
+# Local test media + scratch
+videos/
+.tmp-media/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+
+# OS
+Thumbs.db
+desktop.ini
+.DS_Store
+.idea/
+.vscode/

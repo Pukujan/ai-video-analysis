@@ -1,0 +1,89 @@
+name: ACS watchdog
+
+# Agent-less boss-seat watchdog, per .coord/assignment.json:
+#   runner: github_action, ~10m, no LLM, no peer agent.
+# Inputs available in CI are github_commit and github_pr (the claim-file
+# heartbeat is local-only, so liveness here means repo activity). Behavior:
+#   fresh activity          -> noop
+#   stale > idle window(20m) -> flag seat at risk on the watchdog issue
+#   stale > lease TTL (30m) -> flag lease vacant on the watchdog issue
+# All states are posted to one rolling issue; idempotent.
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  watchdog:
+    name: Boss-seat liveness
+    runs-on: ubuntu-latest
+    steps:
+      - name: Evaluate liveness and flag
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          IDLE_MINUTES: "20"
+          LEASE_MINUTES: "30"
+        run: |
+          set -euo pipefail
+          REPO="${GITHUB_REPOSITORY}"
+          TITLE="ACS watchdog: boss seat status"
+
+          last_commit=$(gh api "repos/$REPO/commits?per_page=1" \
+            --jq '.[0].commit.committer.date // empty')
+          last_pr=$(gh api "repos/$REPO/pulls?state=all&sort=updated&direction=desc&per_page=1" \
+            --jq '.[0].updated_at // empty')
+
+          last_epoch=0
+          for d in "$last_commit" "$last_pr"; do
+            [ -n "$d" ] || continue
+            e=$(date -d "$d" +%s)
+            [ "$e" -gt "$last_epoch" ] && last_epoch=$e
+          done
+
+          now=$(date +%s)
+          quiet_min=$(( (now - last_epoch) / 60 ))
+
+          if [ "$last_epoch" -eq 0 ]; then
+            state="no-activity-recorded"
+          elif [ "$quiet_min" -lt "$IDLE_MINUTES" ]; then
+            state="fresh"
+          elif [ "$quiet_min" -lt "$LEASE_MINUTES" ]; then
+            state="at-risk"
+          else
+            state="vacant"
+          fi
+
+          msg="watchdog $(date -u +%FT%TZ): ${state} (quiet ${quiet_min}m)"
+          echo "$msg"
+
+          case "$state" in
+            fresh)
+              # Close any open watchdog flag; fresh heartbeat means noop.
+              gh issue list -R "$REPO" --state open \
+                --search "in:title \"$TITLE\"" --json number --jq '.[].number' |
+              while read -r n; do
+                gh issue close "$n" -R "$REPO" \
+                  -c "auto-resolved: $msg" >/dev/null || true
+              done
+              ;;
+            at-risk|vacant|no-activity-recorded)
+              body="$msg
+
+              Seat state: **$state**.
+              - at-risk: repo idle > ${IDLE_MINUTES}m — boss should check in / keep working.
+              - vacant: repo idle > ${LEASE_MINUTES}m — lease TTL passed; claim file should go vacant.
+              Local claim-file heartbeat is not visible from CI; this flag is repo-activity-based."
+              n=$(gh issue list -R "$REPO" --state open \
+                --search "in:title \"$TITLE\"" --json number --jq '.[0].number // empty')
+              if [ -n "$n" ]; then
+                gh issue comment "$n" -R "$REPO" -b "$body" >/dev/null
+              else
+                gh issue create -R "$REPO" -t "$TITLE" -b "$body" >/dev/null
+              fi
+              ;;
+          esac

@@ -1,0 +1,147 @@
+{
+  "schema_version": "content-generation.project-brief.v2",
+  "project": "AI Video Analysis (Pukujan/ai-video-analysis)",
+  "audience": [
+    "the user (Pukujan), who wants to analyze gaming VODs they like and reuse their style for their own long videos",
+    "agents extending the archive and building the analysis harness",
+    "future maintainers who need to tell raw evidence apart from model interpretation"
+  ],
+  "problem": "Reverse-analyzing edited gaming video into reusable style knowledge needs the humor, narration, cuts, music and audio mix recorded with evidence and timestamps, not summarized as vibes. Earlier passes missed material the user could see, and it was hard to tell a measured fact from a model's guess.",
+  "solution": "Keep an evidence-first archive that stores raw sources byte-identically, separates observations from interpretations and generation guidance, and defines a timestamped event ontology (speech, gameplay, comedy beats, edits, music, audio mix) so an edit becomes regenerable from data instead of copied from a source file. Build the harness against that ontology on a small local stack.",
+  "evidence": [
+    {
+      "claim": "This repository is the public archive for the gaming-video reverse-analysis work, and its stated purpose is to separate hypotheses from ground truth.",
+      "source": "Repository README.md and the archive index.",
+      "status": "shipped",
+      "supports": "The README describes a managed, evidence-first archive and points at managed/README.md for the collection structure and provenance rules.",
+      "limits": "Says nothing about whether any analysis method works; no analysis code is present.",
+      "recorded_at": "2026-10-09T22:38:38Z",
+      "source_revision": {
+        "kind": "repository_artifact",
+        "reference": "README.md",
+        "repository": "Pukujan/ai-video-analysis",
+        "commit": "e429553ec1a855c250918edd574fdd0ae7c8366a",
+        "path": "README.md",
+        "locator": "whole file",
+        "uri": "https://github.com/Pukujan/ai-video-analysis/blob/e429553ec1a855c250918edd574fdd0ae7c8366a/README.md"
+      },
+      "cite_in_readme": false
+    },
+    {
+      "claim": "The archive separates raw source bytes from interpretations, and requires every derived claim to carry an epistemic level and linked evidence.",
+      "source": "Epistemic provenance protocol.",
+      "status": "shipped",
+      "supports": "PROVENANCE.md defines evidence levels E0 to E4 and lists the annotation fields every derived claim needs, including confidence, epistemic_level and alternate_hypotheses.",
+      "limits": "A written protocol only; no tool enforces it yet and no derived claims have been produced under it.",
+      "recorded_at": "2026-10-09T22:38:38Z",
+      "source_revision": {
+        "kind": "repository_artifact",
+        "reference": "managed/epistemic/PROVENANCE.md",
+        "repository": "Pukujan/ai-video-analysis",
+        "commit": "e429553ec1a855c250918edd574fdd0ae7c8366a",
+        "path": "managed/epistemic/PROVENANCE.md",
+        "locator": "Evidence levels and Annotation fields sections",
+        "uri": "https://github.com/Pukujan/ai-video-analysis/blob/e429553ec1a855c250918edd574fdd0ae7c8366a/managed/epistemic/PROVENANCE.md"
+      },
+      "cite_in_readme": false
+    },
+    {
+      "claim": "The user supplied a full timestamped transcript of a 9:24 Dark Souls III reference video, and the source video itself was never uploaded to the repository.",
+      "source": "Source manifest, raw_sources entries.",
+      "status": "shipped",
+      "supports": "SOURCES.json records the transcript path and records the 46 MB video as hash-and-metadata only, with the reason it was not committed.",
+      "limits": "The transcript carries ASR errors and censor markers as supplied; it does not by itself establish vocal tone or frame-accurate events.",
+      "recorded_at": "2026-10-09T22:38:38Z",
+      "source_revision": {
+        "kind": "repository_artifact",
+        "reference": "managed/epistemic/SOURCES.json",
+        "repository": "Pukujan/ai-video-analysis",
+        "commit": "e429553ec1a855c250918edd574fdd0ae7c8366a",
+        "path": "managed/epistemic/SOURCES.json",
+        "locator": "raw_sources array",
+        "uri": "https://github.com/Pukujan/ai-video-analysis/blob/e429553ec1a855c250918edd574fdd0ae7c8366a/managed/epistemic/SOURCES.json"
+      },
+      "cite_in_readme": false
+    },
+    {
+      "claim": "The user asked for a strong data model to classify everything a multimodal model extracts from a video, and whether that can be done exhaustively.",
+      "source": "Archived earlier user turns, turn 13.",
+      "status": "shipped",
+      "supports": "Turn 13 of early-user-turns.md records the request for a data model for classifying extracted video data and the exhaustiveness question.",
+      "limits": "A request, not a design; it does not settle which model or sampling policy can satisfy it.",
+      "recorded_at": "2026-10-09T22:38:38Z",
+      "source_revision": {
+        "kind": "repository_artifact",
+        "reference": "managed/sources/chat/early-user-turns.md",
+        "repository": "Pukujan/ai-video-analysis",
+        "commit": "e429553ec1a855c250918edd574fdd0ae7c8366a",
+        "path": "managed/sources/chat/early-user-turns.md",
+        "locator": "turn 13",
+        "uri": "https://github.com/Pukujan/ai-video-analysis/blob/e429553ec1a855c250918edd574fdd0ae7c8366a/managed/sources/chat/early-user-turns.md"
+      },
+      "cite_in_readme": false
+    },
+    {
+      "claim": "The user reported that earlier analysis passes missed specific material, including the early rolling sequence, enjoying killing weak enemies, and the enemy attacking crates.",
+      "source": "Archived earlier user turns, turn 12.",
+      "status": "shipped",
+      "supports": "Turn 12 names the missed scenes and asks whether the misses reflect a limitation of the model.",
+      "limits": "The user's judgment about what was missed; the underlying video is not in the repository to re-check against.",
+      "recorded_at": "2026-10-09T22:38:38Z",
+      "source_revision": {
+        "kind": "repository_artifact",
+        "reference": "managed/sources/chat/early-user-turns.md",
+        "repository": "Pukujan/ai-video-analysis",
+        "commit": "e429553ec1a855c250918edd574fdd0ae7c8366a",
+        "path": "managed/sources/chat/early-user-turns.md",
+        "locator": "turn 12",
+        "uri": "https://github.com/Pukujan/ai-video-analysis/blob/e429553ec1a855c250918edd574fdd0ae7c8366a/managed/sources/chat/early-user-turns.md"
+      },
+      "cite_in_readme": false
+    },
+    {
+      "claim": "A target data model is proposed: a timestamped event ontology linking gameplay events, comedy beats, edits, music cues and audio-mix events with many-to-many evidence links.",
+      "source": "Canonical data ontology design document.",
+      "status": "planned",
+      "supports": "DATA_MODEL.md lists the core record types and the domain constraints, such as half-open millisecond intervals and no invented frame-accurate boundaries.",
+      "limits": "A design proposal; the tables are not implemented and no records exist yet.",
+      "recorded_at": "2026-10-09T22:38:38Z",
+      "source_revision": {
+        "kind": "repository_artifact",
+        "reference": "managed/design/DATA_MODEL.md",
+        "repository": "Pukujan/ai-video-analysis",
+        "commit": "e429553ec1a855c250918edd574fdd0ae7c8366a",
+        "path": "managed/design/DATA_MODEL.md",
+        "locator": "Core tables / record types section",
+        "uri": "https://github.com/Pukujan/ai-video-analysis/blob/e429553ec1a855c250918edd574fdd0ae7c8366a/managed/design/DATA_MODEL.md"
+      },
+      "cite_in_readme": false
+    },
+    {
+      "claim": "The proposed success targets for joke detection are calibration goals, not measured results.",
+      "source": "Validation and evaluation plan.",
+      "status": "planned",
+      "supports": "VALIDATION.md states that targets such as >=90% joke recall and >=85% precision are to be calibrated after annotation, and marks the document status PLANNED.",
+      "limits": "No annotated set exists, so none of the targets has been tested.",
+      "recorded_at": "2026-10-09T22:38:38Z",
+      "source_revision": {
+        "kind": "repository_artifact",
+        "reference": "managed/design/VALIDATION.md",
+        "repository": "Pukujan/ai-video-analysis",
+        "commit": "e429553ec1a855c250918edd574fdd0ae7c8366a",
+        "path": "managed/design/VALIDATION.md",
+        "locator": "Semantic evaluation section",
+        "uri": "https://github.com/Pukujan/ai-video-analysis/blob/e429553ec1a855c250918edd574fdd0ae7c8366a/managed/design/VALIDATION.md"
+      },
+      "cite_in_readme": false
+    }
+  ],
+  "boundaries": [
+    "Primary sources under managed/sources/ are immutable; new material is added as new versions, never by editing history.",
+    "No joke, sarcasm, emotion or music identity is recorded as observed without linked evidence; interpretation and observation are separate fields.",
+    "Caption [ __ ] markers and ASR errors are preserved as supplied, not guessed or silently corrected.",
+    "No invented frame-accurate edit boundaries and no metric reported as met before it is measured.",
+    "Proposed editing rules are generation guidance, never claims about a reference creator.",
+    "The public repository keeps supplied language unredacted; keys, tokens and private file paths never enter it."
+  ]
+}

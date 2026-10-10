@@ -20,25 +20,26 @@ From the archived turns in [`managed/sources/chat/early-user-turns.md`](managed/
 
 ## What exists today
 
-This repository is an **archive**, not a running system. What is committed:
+This repository is an **archive plus a running deterministic pass**. What is committed:
 
 - **Primary evidence (immutable).** One reference video's timestamped transcript, a pasted conversation export, and the earlier user turns, each preserved byte-for-byte and hashed in [`managed/epistemic/SOURCES.json`](managed/epistemic/SOURCES.json). The 46 MB source video is not committed; only its hash and metadata are recorded.
 - **Historical analyses (not ground truth).** Three versions of model-derived analysis of reference 01, kept side by side and explicitly not merged or corrected.
 - **Design proposals.** The harness brief ([`HARNESS_SPEC.md`](managed/design/HARNESS_SPEC.md)), the event ontology ([`DATA_MODEL.md`](managed/design/DATA_MODEL.md)), the validation plan ([`VALIDATION.md`](managed/design/VALIDATION.md)) and the voice-quality brief ([`VOICE_QUALITY.md`](managed/design/VOICE_QUALITY.md)).
+- **A running harness core and deterministic pass.** [`src/harness/`](src/harness) holds the record types, the controlled vocabularies and timebase, the immutable source registry, the versioned profile config and the ffmpeg analysis pass. `python -m harness.analyze --video <path>` measures a video into validated records and writes a local DuckDB store plus a Parquet export. The layer map is [`managed/design/ARCHITECTURE.md`](managed/design/ARCHITECTURE.md).
 
-There is **no analysis code, no database and no review UI yet**. The data model, the phases and the metrics are proposals with target values, not demonstrated performance.
+What remains unbuilt is the model-backed half: multimodal extraction, the correction UI and the holdout set. The data model, the phases and the metrics are still proposals with target values; only the deterministic measurements are demonstrated.
 
 ## What is proposed (not yet built)
 
 Per the design briefs, the intended system is small and local:
 
-- Immutable source registry with byte hashes, plus a media preprocessor (FFmpeg/ffprobe) that records duration, frame rate and audio layout.
-- A coverage planner over overlapping 20–30 second audiovisual windows, tracking every window's attempted/succeeded/failed status — 100% accounting, not claimed 100% recall.
 - Multi-lens dense extraction (speech, gameplay state, editorial cuts, audio mix/music, humor and deliberate non-jokes), with an independent transcript pass.
-- A local DuckDB event store with Parquet exports, append-only JSONL for raw model responses, and an adaptable BYOK multimodal backend whose provider version is recorded per run.
+- An adaptable BYOK multimodal backend whose provider version is recorded per run.
 - A minimal correction interface and a locked holdout set for evaluation.
 
 Only after that: narration and edit generation, rendering, and blind human preference tests.
+
+Already built, and mapped in [`managed/design/ARCHITECTURE.md`](managed/design/ARCHITECTURE.md): the immutable source registry with byte hashes, the ffmpeg/ffprobe preprocessor, the coverage planner over overlapping windows, the versioned profile config, and the local DuckDB store with Parquet exports.
 
 ## Boundaries
 
@@ -55,4 +56,4 @@ Every derived claim carries: `claim_id, source_id, media_start_ms, media_end_ms,
 
 ## Next unit of work
 
-Scaffold the harness itself against the design briefs: schema definitions for the core record types, the window planner, the DuckDB store and a schema validator. That is code, and it is the step after this archive and its governance surface.
+The deterministic pass and its config/profile layer are in. The next unit is the model-backed extraction pass — the multi-lens dense extraction that produces the remaining substrate and derived record types — behind the BYOK backend seam, with the coverage planner driving per-window calls. See the `proposed` rows in [`managed/design/ARCHITECTURE.md`](managed/design/ARCHITECTURE.md).

@@ -12,10 +12,17 @@ This folder is the canonical workspace for the gaming-video analysis research di
 ## Research outputs (proposals or interpretations)
 - epistemic/PROVENANCE.md — hierarchy of evidence, uncertainty, corrections.
 - epistemic/SOURCES.json — source manifest, hashes and known gaps.
+- design/ARCHITECTURE.md — system map: layer → module → record types → spec doc.
 - design/HARNESS_SPEC.md — design decisions across the discussion.
 - design/DATA_MODEL.md — event ontology, music/edit/speech linkage.
+- design/PROFILES.md — the config/control layer: profiles, thresholds, vocabulary.
 - design/VALIDATION.md — test strategy and evaluation principles.
 - design/VOICE_QUALITY.md — stateful narration and human-likeness evaluation.
+
+## System (code)
+- The running implementation is `src/harness/`. The layer map is design/ARCHITECTURE.md.
+- Runtime config lives at the repo root in `config/` (`base.toml` plus `config/profiles/<id>.toml`), specified by design/PROFILES.md. It is data, not part of this archive.
+- The `managed/` tree stays read-only to the code: the analysis pass reads the source manifest and never writes here.
 
 ## Archive policy
 1. Keep original sources immutable. Add new versions instead of editing historical raw evidence.

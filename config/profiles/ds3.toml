@@ -1,0 +1,84 @@
+# Dark Souls III profile: one creator, one game, one run.
+#
+# This file declares domain vocabulary — names for things the game contains and
+# motifs this creator uses. It is NOT an observation about any video: the
+# deterministic pass emits no entity, motif or HUD claim, so nothing here is
+# asserted as having appeared. It becomes meaningful only when a reader that
+# consumes it exists (the model-backed extraction pass), at which point those
+# claims will cite these declared ids.
+#
+# v0.1.0 deliberately changes NO threshold: it changes identity and vocabulary,
+# not measurement. A threshold change requires a version bump.
+
+schema_version = "1.0.0"
+
+[profile]
+id = "ds3"
+version = "0.1.0"
+creator_id = "creator_01"
+game_id = "dark_souls_3"
+game_label = "Dark Souls III"
+
+[vocabulary]
+terms = [
+  "ext:you_died",
+  "ext:bonfire_lit",
+  "ext:estus_drink",
+  "ext:hud_death_counter",
+]
+
+[[vocabulary.entities]]
+id = "iudex_gundyr"
+kind = "boss"
+label = "Iudex Gundyr"
+
+[[vocabulary.entities]]
+id = "vordt_of_the_boreal_valley"
+kind = "boss"
+label = "Vordt of the Boreal Valley"
+
+[[vocabulary.entities]]
+id = "curse_rotted_greatwood"
+kind = "boss"
+label = "Curse-Rotted Greatwood"
+
+[[vocabulary.entities]]
+id = "crystal_sage"
+kind = "boss"
+label = "Crystal Sage"
+
+[[vocabulary.entities]]
+id = "deacons_of_the_deep"
+kind = "boss"
+label = "Deacons of the Deep"
+
+[[vocabulary.entities]]
+id = "abyss_watchers"
+kind = "boss"
+label = "Abyss Watchers"
+
+[[vocabulary.motifs]]
+id = "skull_death_counter"
+label = "skull death counter"
+note = "on-screen tally of deaths, a running gag of this creator"
+
+[[vocabulary.motifs]]
+id = "please_stand_by"
+label = "PLEASE STAND BY card"
+note = "interstitial card used to punctuate a break or a failure"
+
+[[vocabulary.hud_regions]]
+id = "health"
+label = "health bar"
+
+[[vocabulary.hud_regions]]
+id = "stamina"
+label = "stamina bar"
+
+[[vocabulary.hud_regions]]
+id = "estus"
+label = "Estus flask charge count"
+
+[[vocabulary.hud_regions]]
+id = "souls"
+label = "soul counter"

@@ -6,7 +6,7 @@ the immutable source registry, transcript ingest, the coverage planner, and
 the local event store. Model-backed analysis plugs in behind a backend seam.
 """
 
-SCHEMA_VERSION = "1.0.0"
+SCHEMA_VERSION = "1.1.0"
 __version__ = "0.1.0"
 
 

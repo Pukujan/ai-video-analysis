@@ -182,6 +182,9 @@ class AnalysisRun(_StrictRecord):
     model_id: str = Field(min_length=1)
     endpoint: str | None = None
     prompt_hash: str = Field(min_length=1)
+    profile_id: str | None = None
+    profile_version: str | None = None
+    config_hash: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
     transcript_version: str | None = None
     code_version: str = Field(min_length=1)
     frame_sample_policy: str = Field(min_length=1)

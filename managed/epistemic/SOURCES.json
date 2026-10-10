@@ -25,6 +25,24 @@
       "reason": "request centered on transcript and chat text, source is a 46 MB third-party video"
     },
     {
+      "id": "ds3-ep1-video",
+      "path": null,
+      "name": "ds3 ep 1.mp4",
+      "sha256": "03f4f671f150d6428b15c607179af7316ee2e57ba5febe62e9d45d876de28f4d",
+      "bytes": 50379897,
+      "fidelity": "not uploaded to GitHub, only hash and metadata recorded",
+      "reason": "same series as reference-01, supplied by the user for the extraction pass; original source URL not recorded"
+    },
+    {
+      "id": "ds3-ep2-video",
+      "path": null,
+      "name": "ds3 ep 2.mp4",
+      "sha256": "4a4b107beb7227bcf4ee293a56119a24f4d2db399f6bffa2ee3bdb1a3470db2c",
+      "bytes": 24232754,
+      "fidelity": "not uploaded to GitHub, only hash and metadata recorded",
+      "reason": "same series as reference-01, supplied by the user for the extraction pass; original source URL not recorded"
+    },
+    {
       "id": "reference01-transcript",
       "path": "managed/sources/reference-01/user-provided-timestamped-transcript.txt",
       "provenance": "copied from user message in this conversation",
@@ -83,6 +101,7 @@
     "Conversation export starts midway through the chat; earlier assistant replies are not archived verbatim.",
     "Raw video, generated screenshots, and extracted soundtrack are not committed to GitHub.",
     "Transcript already contains censored placeholders and ASR errors as originally supplied.",
+    "The ep1 and ep2 videos are registered by byte hash and size only; their original source URLs were not recorded.",
     "Future chat messages are not automatically exported or committed."
   ]
 }

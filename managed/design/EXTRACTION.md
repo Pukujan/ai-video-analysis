@@ -101,7 +101,11 @@ namespace, so both passes for one video sit side by side.
   - `asr`: one call per window asking for utterances as JSON;
     emits `utterance` (E1, `model_id` recorded,
     `alignment_method` = `"asr:ali/qwen3.8-omni-flash"`) +
-    `word_alignment` (E1, interpolated across the model's span).
+    `word_alignment` (E1, interpolated across the model's span). A
+    malformed reply is normalized to `RecordError` and re-asked once,
+    exactly like the interpretation lens — a missing timestamp must fail
+    the *reply*, never raise a raw `KeyError` that escapes the per-window
+    loop and kills the whole video.
 - `DeliveryLens`: **no model, no network.** ffmpeg only: `silencedetect`
   for `pause_ms`, word-count/rate for `speech_rate_wpm`,
   `loudnorm` print for `energy_db`. Emits `vocal_delivery` (E1).

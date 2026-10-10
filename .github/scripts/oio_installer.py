@@ -61,6 +61,32 @@ def _sha256(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
+def _lf_bytes(data: bytes) -> bytes:
+    """Return ``data`` with CRLF and lone CR normalized to LF.
+
+    OIO's managed files are text, so their integrity contract is about content,
+    not the line-ending style of the checkout that ran the installer. Installing
+    the LF form makes a Windows (CRLF) and a Linux (LF) install byte-identical,
+    so a correct install passes its own ``--check`` gate on either platform.
+    """
+    return data.replace(b"\r\n", b"\n").replace(b"\r", b"\n")
+
+
+def _matches_recorded(data: bytes, recorded_sha256: str) -> bool:
+    """Whether ``data`` matches a recorded digest, ignoring line-ending style.
+
+    The recorded digest was taken over the raw bytes of whatever checkout ran
+    the older installer (LF on Linux, CRLF on Windows), and the current file may
+    be in either style. Comparing every canonical form accepts a manifest written
+    by that older installer so an existing adopter migrates through a normal
+    re-install instead of deleting the install. A real content edit changes all
+    of these digests and is still refused.
+    """
+    normalized = _lf_bytes(data)
+    candidates = {data, normalized, normalized.replace(b"\n", b"\r\n")}
+    return any(_sha256(candidate) == recorded_sha256 for candidate in candidates)
+
+
 def _source_file(relative: str) -> Path:
     if relative.startswith(".github/") or relative == "AGENTS.md":
         return SOURCE_ROOT / relative
@@ -533,7 +559,9 @@ def _managed_agents(existing: str | None, old_hash: str | None) -> tuple[str, st
         raise InstallError("AGENTS.md contains an incomplete or malformed OIO guidance marker")
     if start >= 0:
         prior = existing[start : end + len(AGENTS_END)]
-        if old_hash is None or _sha256(prior.encode()) != old_hash:
+        # The recorded hash is over the LF block; a CRLF worktree carries the same
+        # block with CRLF, so normalize before comparing to avoid a false "edited".
+        if old_hash is None or _sha256(_lf_bytes(prior.encode())) != old_hash:
             raise InstallError("the OIO-managed AGENTS.md section was edited; refusing to overwrite it")
         result = existing[:start] + new_block + existing[end + len(AGENTS_END) :]
     else:
@@ -616,10 +644,10 @@ def _install_in_target(target: Path, target_fs: _TargetFS, project_id: str | Non
     for relative, source_relative in PACKAGE_FILES.items():
         destination = _target_file(target, relative)
         source = _source_file(source_relative)
-        planned[relative] = source.read_bytes()
+        planned[relative] = _lf_bytes(source.read_bytes())
         if manifest and relative in old_files:
             installed_data = target_fs.read_bytes(relative)
-            if installed_data is None or _sha256(installed_data) != old_files[relative]:
+            if installed_data is None or not _matches_recorded(installed_data, old_files[relative]):
                 raise InstallError(f"managed file changed since OIO installed it: {relative}")
         elif target_fs.read_bytes(relative) is not None:
             raise InstallError(f"unmanaged file already exists at {relative}; refusing to adopt or overwrite it")
@@ -650,8 +678,24 @@ def _install_in_target(target: Path, target_fs: _TargetFS, project_id: str | Non
     if check_only:
         if not manifest:
             raise InstallError("OIO is not installed in this repository")
-        if manifest.get("oio_version") != OIO_VERSION or any(target_fs.read_bytes(path) != data for path, data in planned.items() if path != ".oio/ontology/project.json"):
+        if manifest.get("oio_version") != OIO_VERSION:
             raise InstallError("installed OIO files differ from this pinned package; run the installer to update")
+        mismatches: list[str] = []
+        eol_only: list[str] = []
+        for path, data in planned.items():
+            if path == ".oio/ontology/project.json":
+                continue
+            installed_data = target_fs.read_bytes(path)
+            if installed_data == data:
+                continue
+            if installed_data is not None and _lf_bytes(installed_data) == _lf_bytes(data):
+                eol_only.append(path)
+            else:
+                mismatches.append(path)
+        if mismatches:
+            raise InstallError(f"installed OIO files differ from this pinned package: {', '.join(mismatches)}; run the installer to update")
+        if eol_only:
+            return [f"VALID: OIO package, project ontology, and managed files match; line endings differ at {', '.join(eol_only)} and the content is otherwise identical — rerun the installer to normalize them to LF"]
         return ["VALID: OIO package, project ontology, and managed files match"]
 
     # Journal prior bytes before the first managed write. A subsequent invocation

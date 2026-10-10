@@ -140,9 +140,15 @@ namespace, so both passes for one video sit side by side.
   the two JPEGs `WindowMedia.frames` samples per window, and a `transcript`
   declaration that fails verification resolves to `audio_region` without
   costing a re-ask — the fallback is "not transcript-vouched, presumed clip
-  audio", a source that is not proven, not a claim that it is the transcript. The reason is empirical: the model is handed the
-  supplied lines *and* the mp4, and it quotes the clip's audio instead when
-  the two differ — it de-censors a censored transcript (the supplied ep3
+  audio", a source that is not proven, not a claim that it is the transcript.
+  What "the window's utterances" means depends on the producer: the
+  supplied transcript for the reference episode, the window's own ASR for
+  the others — so a `transcript_quote` there is a real, checkable utterance
+  match, not the creator's transcript, and the distinction stays recoverable
+  from the utterance's `alignment_method`. The reason is empirical: the model
+  is handed the supplied lines *and* the mp4, and it quotes the clip's audio
+  instead when the two differ — it de-censors a censored transcript (the
+  supplied ep3
   transcript reads `gigantic [ __ ] dragon`, the clip's audio says
   `gigantic fucking dragon`, verified by independent transcription) and
   sometimes describes the picture (`[Please Stand By screen]`). An

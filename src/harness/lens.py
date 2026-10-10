@@ -95,6 +95,16 @@ def _anchor(*parts: object) -> str:
     return hashlib.sha256(seed.encode("utf-8")).hexdigest()[:10]
 
 
+def _enum_values(vocabulary: type[StrEnum]) -> list[str]:
+    """The vocabulary's labels, for the reply schema's ``enum``.
+
+    Without this the schema says "a string" and the model invents a label like
+    ``"establishes the narrator's persona"``; the vocabulary is enforced in
+    ``parse``, so it has to be *told* to the model too, not just checked after.
+    """
+    return [member.value for member in vocabulary]
+
+
 def _vocab(value: str, vocabulary: type[StrEnum], field: str) -> str:
     """Vocabulary check, reported as a reply-shape failure so it re-asks.
 
@@ -106,6 +116,28 @@ def _vocab(value: str, vocabulary: type[StrEnum], field: str) -> str:
         return validate_vocab(value, vocabulary, field)
     except VocabError as exc:
         raise RecordError(str(exc)) from exc
+
+
+def _vocab_list(values: list[Any], vocabulary: type[StrEnum], field: str) -> list[str]:
+    """Validate a label list, dropping unknown labels rather than failing.
+
+    A mechanism list is a best-effort annotation: one label the model invented
+    must not discard a beat whose other labels are good, and must not cost a
+    re-ask. If *no* label survives, the reply is rejected — an empty list the
+    model chose is a different thing from a list that was all nonsense.
+    """
+    kept: list[str] = []
+    for value in values:
+        try:
+            kept.append(validate_vocab(str(value).strip(), vocabulary, field))
+        except VocabError:
+            continue
+    if values and not kept:
+        raise RecordError(
+            f"{field}: none of {values!r} is a {vocabulary.__name__} member "
+            "or an ext:<slug> token"
+        )
+    return kept
 
 
 def _ms(beat: dict[str, Any], key: str) -> int:
@@ -413,10 +445,13 @@ _SCHEMA: dict[str, Any] = {
                     "setup": {"type": "string"},
                     "payoff": {"type": "string"},
                     "target_of_humor": {"type": "string"},
-                    "mechanism_labels": {"type": "array", "items": {"type": "string"}},
+                    "mechanism_labels": {
+                        "type": "array",
+                        "items": {"type": "string", "enum": _enum_values(ComedyMechanism)},
+                    },
                     "speech_visual_dependency": {"type": "string"},
-                    "narrative_role": {"type": "string"},
-                    "decision": {"type": "string"},
+                    "narrative_role": {"type": "string", "enum": _enum_values(NarrativeRole)},
+                    "decision": {"type": "string", "enum": _enum_values(ResponseDecision)},
                     "decision_reason": {"type": "string"},
                     "alternate_readings": {"type": "array", "items": {"type": "string"}},
                 },
@@ -427,6 +462,7 @@ _SCHEMA: dict[str, Any] = {
                     "incongruity",
                     "mechanism_labels",
                     "speech_visual_dependency",
+                    "narrative_role",
                     "decision",
                     "decision_reason",
                     "alternate_readings",
@@ -466,7 +502,15 @@ class InterpretationLens:
             "is incongruous, the mechanism labels, the target of humor, whether "
             "the joke needs the picture (speech_visual_dependency), its "
             "narrative_role, the narrator's decision and reason, and at least "
-            "one alternate reading (a different way to read the same moment)."
+            "one alternate reading (a different way to read the same moment).\n\n"
+            "The label fields are closed vocabularies — pick the closest member, "
+            "never a description:\n"
+            f"- narrative_role: one of {_enum_values(NarrativeRole)}\n"
+            f"- decision (what the narrator does with this moment): one of "
+            f"{_enum_values(ResponseDecision)} — 'react' is an in-character "
+            "response, 'speak' is added narration, 'delegate_sfx' lets the game "
+            "audio carry it\n"
+            f"- mechanism_labels: zero or more of {_enum_values(ComedyMechanism)}"
         )
         return Request(
             model=self.model,
@@ -495,10 +539,9 @@ class InterpretationLens:
             s = min(max(start + _ms(beat, "start_ms"), window[0]), window[1])
             e = min(max(start + _ms(beat, "end_ms"), s + 1), window[1])
             alternates = [str(a) for a in beat.get("alternate_readings", []) if str(a).strip()]
-            mechanisms = [
-                _vocab(str(m), ComedyMechanism, "mechanism_labels")
-                for m in beat.get("mechanism_labels", [])
-            ]
+            mechanisms = _vocab_list(
+                beat.get("mechanism_labels", []), ComedyMechanism, "mechanism_labels"
+            )
             role = _vocab(
                 str(beat.get("narrative_role", "unknown")), NarrativeRole, "narrative_role"
             )

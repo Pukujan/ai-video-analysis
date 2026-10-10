@@ -18,6 +18,7 @@ from harness.lens import (
     parse_transcript,
 )
 from harness.records import RecordError
+from harness.vocab import NarrativeRole, ResponseDecision
 
 _FIXTURES = Path(__file__).resolve().parent / "fixtures" / "lens"
 _MODEL = "ali/qwen3.8-omni-flash"
@@ -160,4 +161,89 @@ def test_beat_without_alternates_is_rejected(tmp_path: Path) -> None:
         ]
     }
     with pytest.raises(RecordError):  # an E2 claim needs alternate_hypotheses
+        lens.parse(response, (0, 25_000), _ctx())
+
+
+def test_schema_carries_the_label_vocabularies(tmp_path: Path) -> None:
+    """The model must be told the closed labels, not just have them checked.
+
+    A bare ``{"type": "string"}`` let the model answer ``narrative_role`` with a
+    free-text description, which ``parse`` then rejected — so every live window
+    failed. The schema has to carry the vocabulary.
+    """
+    request = InterpretationLens(_MODEL).build((0, 25_000), _media(tmp_path), ())
+    beat = request.schema["properties"]["beats"]["items"]
+    assert beat["properties"]["narrative_role"]["enum"] == [
+        m.value for m in NarrativeRole
+    ]
+    assert beat["properties"]["decision"]["enum"] == [m.value for m in ResponseDecision]
+    assert "sarcasm" in beat["properties"]["mechanism_labels"]["items"]["enum"]
+    assert "narrative_role" in beat["required"]
+
+
+def test_free_text_narrative_role_is_rejected(tmp_path: Path) -> None:
+    lens = InterpretationLens(_MODEL)
+    response = {
+        "beats": [
+            {
+                "start_ms": 0,
+                "end_ms": 1_000,
+                "quote": "q",
+                "incongruity": "x",
+                "mechanism_labels": ["sarcasm"],
+                "speech_visual_dependency": "words",
+                "narrative_role": "establishes the narrator's sadistic persona",
+                "decision": "react",
+                "decision_reason": "r",
+                "alternate_readings": ["literal"],
+            }
+        ]
+    }
+    with pytest.raises(RecordError, match="narrative_role"):
+        lens.parse(response, (0, 25_000), _ctx())
+
+
+def test_unknown_mechanism_labels_are_dropped_not_fatal(tmp_path: Path) -> None:
+    """One invented label must not discard a beat whose other labels are good."""
+    lens = InterpretationLens(_MODEL)
+    response = {
+        "beats": [
+            {
+                "start_ms": 0,
+                "end_ms": 1_000,
+                "quote": "q",
+                "incongruity": "x",
+                "mechanism_labels": ["sarcasm", "vibes-based humor"],
+                "speech_visual_dependency": "words",
+                "narrative_role": "isolated",
+                "decision": "react",
+                "decision_reason": "r",
+                "alternate_readings": ["literal"],
+            }
+        ]
+    }
+    records = lens.parse(response, (0, 25_000), _ctx())
+    beat = next(m for t, m in records if t == "comedy_beat").model_dump()
+    assert beat["mechanism_labels"] == ["sarcasm"]
+
+
+def test_all_unknown_mechanism_labels_are_rejected(tmp_path: Path) -> None:
+    lens = InterpretationLens(_MODEL)
+    response = {
+        "beats": [
+            {
+                "start_ms": 0,
+                "end_ms": 1_000,
+                "quote": "q",
+                "incongruity": "x",
+                "mechanism_labels": ["vibes", "chaos energy"],
+                "speech_visual_dependency": "words",
+                "narrative_role": "isolated",
+                "decision": "react",
+                "decision_reason": "r",
+                "alternate_readings": ["literal"],
+            }
+        ]
+    }
+    with pytest.raises(RecordError, match="mechanism_labels"):
         lens.parse(response, (0, 25_000), _ctx())

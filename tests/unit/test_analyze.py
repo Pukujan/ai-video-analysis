@@ -179,7 +179,7 @@ def test_build_records_emits_expected_types() -> None:
         "source_artifact",
         "reference_video",
         "analysis_run",
-        "audio_mix_event",
+        "observation",
         "audio_event",
         "edit_event",
         "shot_continuity",
@@ -218,12 +218,15 @@ def test_build_records_source_id_matches_artifact() -> None:
             assert data["source_id"] == artifact_id
 
 
-def test_loudness_maps_to_mix_event() -> None:
+def test_loudness_is_an_observation_not_a_mix_action() -> None:
     records, _ = _build()
-    mix = next(m for t, m in records if t == "audio_mix_event").model_dump()
-    assert mix["relative_loudness_db"] == -13.3
-    assert mix["dynamic_range_db"] == 10.5
-    assert mix["media_start_ms"] == 0
+    obs = next(m for t, m in records if t == "observation").model_dump()
+    assert obs["modality"] == "audio"
+    assert obs["measured"] is True
+    assert obs["media_start_ms"] == 0 and obs["media_end_ms"] == 574_996
+    assert "-13.3" in obs["verbatim_evidence"]
+    # no fabricated ducking/crossfade claims
+    assert not any(t == "audio_mix_event" for t, _ in records)
 
 
 def test_silence_is_audio_event_not_a_comedic_pause() -> None:
@@ -283,8 +286,25 @@ def test_no_audio_skips_loudness_and_warns() -> None:
         video_id="v",
         windows=[],
     )
-    assert not any(t == "audio_mix_event" for t, _ in records)
+    assert not any(t == "observation" for t, _ in records)
     assert any("no audio stream" in w for w in warnings)
+
+
+def test_coverage_windows_claim_only_exposed_modalities() -> None:
+    records, _ = _build()
+    windows = [m.model_dump() for t, m in records if t == "coverage_window"]
+    assert windows and all(w["modalities"] == ["visual", "audio"] for w in windows)
+    assert all("whole-file deterministic pass" in w["sampling_policy"] for w in windows)
+
+
+def test_claim_ids_are_content_derived_not_index_based() -> None:
+    # Same detection content -> same id, even if it moves position in the list.
+    records_a, _ = _build()
+    records_b, _ = _build()
+    ids_a = {m.model_dump()["claim_id"] for t, m in records_a if t == "edit_event"}
+    ids_b = {m.model_dump()["claim_id"] for t, m in records_b if t == "edit_event"}
+    assert ids_a == ids_b
+    assert all("cut_" in cid for cid in ids_a)
 
 
 def test_policy_hash_is_stable() -> None:

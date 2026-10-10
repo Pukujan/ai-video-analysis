@@ -33,6 +33,7 @@ __all__ = [
     "Completion",
     "GateTripped",
     "InferHubBackend",
+    "MalformedReply",
     "MediaRef",
     "Request",
     "get_backend",
@@ -56,6 +57,16 @@ _PROVIDERS = ("inferhub", "openrouter")
 
 class BackendError(RuntimeError):
     """An unrecoverable backend failure: auth, transport, or malformed reply."""
+
+
+class MalformedReply(BackendError):
+    """The model replied, but not with a JSON object.
+
+    A reply-shape failure, not a transport failure: it is the same class as a
+    missing field or an unknown label, so a lens re-asks it once rather than
+    failing the window. Transport and HTTP errors stay plain
+    :class:`BackendError` and are never retried.
+    """
 
 
 class GateTripped(Exception):
@@ -191,9 +202,9 @@ def _extract_json(text: str) -> dict[str, Any]:
     try:
         parsed = json.loads(cleaned)
     except json.JSONDecodeError as exc:
-        raise BackendError(f"model reply was not JSON: {exc}") from exc
+        raise MalformedReply(f"model reply was not JSON: {exc}") from exc
     if not isinstance(parsed, dict):
-        raise BackendError("model reply was not a JSON object")
+        raise MalformedReply("model reply was not a JSON object")
     return parsed
 
 

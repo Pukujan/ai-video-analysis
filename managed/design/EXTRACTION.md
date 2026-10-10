@@ -70,6 +70,11 @@ namespace, so both passes for one video sit side by side.
 ### `harness/backend.py` — the BYOK seam (provider-shaped)
 
 - `GateTripped(Exception)` — carries the provider reason text.
+- `MalformedReply(BackendError)` — the model replied, but not with a JSON
+  object. A reply-shape failure, not a transport failure: the lenses catch
+  it alongside `RecordError` for the one re-ask, so a non-JSON reply costs a
+  re-ask rather than the window. Plain `BackendError` (HTTP, transport) is
+  never retried.
 - `MediaRef(kind, path)` — `kind ∈ {video, audio, image}`.
 - `Request(model, prompt, media, schema)` — frozen.
 - `Backend(Protocol)`: `complete(request) -> Completion` — the parsed JSON
@@ -114,20 +119,34 @@ namespace, so both passes for one video sit side by side.
 - `InterpretationLens(model)`: one multimodal call on the mp4 clip. Its
   `build` and `parse` are public so a rejected reply can be re-sent; `run`
   is `build -> complete -> parse` with one re-ask (see error handling).
-  Schema requires per beat: `start_ms, end_ms, quote, incongruity,
-  mechanism_labels, target_of_humor, speech_visual_dependency,
+  Schema requires per beat: `start_ms, end_ms, quote, quote_source,
+  incongruity, mechanism_labels, target_of_humor, speech_visual_dependency,
   narrative_role, decision, decision_reason, alternate_readings`.
-  The three label fields carry their vocabulary as an `enum` **and** the
+  The label fields carry their vocabulary as an `enum` **and** the
   prompt names it: a bare `{"type": "string"}` let the model answer
   `narrative_role` with a free-text description, so every live window
   failed — the vocabulary has to be told to the model, not only checked
   after it answers. A single invented `mechanism_labels` entry is dropped
   rather than failing the beat; a list where *nothing* survives is a
   rejected reply like any other shape failure. Emits `comedy_beat` (E2),
-  `response_decision` (E2), `evidence_span`
-  (`kind="transcript_quote"`, verbatim `quote`) per claim. Every reply-shape
-  failure — a missing field, a bad timestamp, an unknown vocabulary label —
-  is normalized to `RecordError`, so one re-ask covers all of them.
+  `response_decision` (E2), and one `evidence_span` per claim whose `kind`
+  is **earned, not assumed**: `transcript_quote` only when the reply's
+  `quote` is verifiably a (normalized) substring of the window's
+  utterances; otherwise the reply's required `quote_source` field decides —
+  `audio` → `audio_region`, `visual` → `frame` with a `frame_index`
+  computed from the beat start and the video frame rate, and a `transcript`
+  declaration that fails verification resolves to `audio_region` without
+  costing a re-ask. The reason is empirical: the model is handed the
+  supplied lines *and* the mp4, and it quotes the clip's audio instead when
+  the two differ — it de-censors a censored transcript (the supplied ep3
+  transcript reads `gigantic [ __ ] dragon`, the clip's audio says
+  `gigantic fucking dragon`, verified by independent transcription) and
+  sometimes describes the picture (`[Please Stand By screen]`). An
+  unverified `transcript_quote` would be a false source claim. Every
+  reply-shape failure — a missing field, a bad timestamp, an unknown
+  vocabulary label, a reply that is not JSON at all (`MalformedReply` from
+  the backend) — is normalized to `RecordError`, so one re-ask covers all
+  of them.
 
 ### `harness/extract.py` — orchestration
 
@@ -172,7 +191,10 @@ det pass windows (plan_coverage)
   holds. Partial results from earlier lenses in that window are kept.
 - **Schema violation by the model**: one re-ask with the validation error
   appended; then the window fails with `failure_reason` =
-  `"schema_rejected: "` + the error.
+  `"schema_rejected: "` + the error. A reply that is not JSON at all
+  (`MalformedReply`) is the same class — a reply-shape failure — so it gets
+  the same one re-ask and lands in the same `schema_rejected:` bucket, not
+  `extraction_error:`.
 - **Other backend failure**: the window fails with `"extraction_error: "`
   + the error; the pass continues to the next window.
 - **A 200 that is not a completion**: two shapes reach the backend that

@@ -13,6 +13,7 @@ from harness.backend import (
     Completion,
     GateTripped,
     InferHubBackend,
+    MalformedReply,
     MediaRef,
     Request,
     _content_blocks,
@@ -82,8 +83,19 @@ def test_extract_json_tolerates_fences() -> None:
 
 
 def test_extract_json_rejects_non_object() -> None:
-    with pytest.raises(BackendError):
+    with pytest.raises(MalformedReply):
         _extract_json("[1, 2, 3]")
+
+
+def test_extract_json_rejects_non_json_as_malformed_reply() -> None:
+    """A non-JSON reply is a reply-shape failure, so a lens can re-ask it once.
+
+    It used to raise plain ``BackendError``, which the lenses do not catch for a
+    re-ask — so the first non-JSON reply failed the whole window.
+    """
+    with pytest.raises(MalformedReply) as excinfo:
+        _extract_json("Sure! Here are the beats: {\"quote\": \"x\"}")
+    assert isinstance(excinfo.value, BackendError)  # still a backend failure
 
 
 # --------------------------------------------------------------------------

@@ -142,7 +142,7 @@ def extract_video(
     if limit_windows is not None:
         windows = windows[:limit_windows]
 
-    ctx = LensContext(video_id, artifact_id, run_id, profile)
+    ctx = LensContext(video_id, artifact_id, run_id, profile, probe.frame_rate)
     transcript = TranscriptLens(_SUPPLIED_TRANSCRIPTS.get(digest), _MODEL)
     delivery = DeliveryLens()
     interpretation = InterpretationLens(_MODEL)

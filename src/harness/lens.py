@@ -27,7 +27,7 @@ from typing import Any, Protocol
 from pydantic import BaseModel
 
 from harness.analyze import detect_silences, measure_loudness
-from harness.backend import Backend, MediaRef, Request
+from harness.backend import Backend, MalformedReply, MediaRef, Request
 from harness.clips import WindowMedia
 from harness.config import AnalysisProfile
 from harness.records import RecordError, parse_record
@@ -36,6 +36,7 @@ from harness.vocab import (
     EpistemicLevel,
     NarrativeRole,
     ResponseDecision,
+    SpanKind,
     VocabError,
     validate_vocab,
 )
@@ -56,6 +57,12 @@ _WORD_RE = re.compile(r"[A-Za-z0-9']+")
 
 SUPPLIED = "transcript_slice"
 
+# What the model declares its quote came from. ``transcript`` is verified
+# against the window's utterances; ``audio`` and ``visual`` label a quote the
+# transcript cannot vouch for (the clip's audio may hold words the supplied
+# transcript censors, and a beat may be purely visual).
+_QUOTE_SOURCES: tuple[str, ...] = ("transcript", "audio", "visual")
+
 
 @dataclass(frozen=True, slots=True)
 class TranscriptLine:
@@ -73,6 +80,7 @@ class LensContext:
     source_id: str
     run_id: str
     profile: AnalysisProfile
+    frame_rate: float
 
 
 def parse_transcript(path: Path) -> list[TranscriptLine]:
@@ -146,6 +154,38 @@ def _ms(beat: dict[str, Any], key: str) -> int:
         return int(beat[key])
     except (KeyError, TypeError, ValueError) as exc:
         raise RecordError(f"beat {key!r} is missing or not an integer: {exc}") from exc
+
+
+def _normalized(text: str) -> str:
+    """Casefold to space-joined word tokens, so punctuation and censor markers
+    (``[ __ ]``) do not defeat a containment check."""
+    return " ".join(_WORD_RE.findall(text.casefold()))
+
+
+def _quote_in_transcript(quote: str, utterances: tuple[BaseModel, ...]) -> bool:
+    """Is ``quote`` verifiably a normalized substring of the window's words?
+
+    The utterances are joined first so a quote spanning two transcript lines
+    still verifies.
+    """
+    if not quote:
+        return False
+    heard = _normalized(" ".join(u.model_dump()["raw_text"] for u in utterances))
+    return bool(heard) and _normalized(quote) in heard
+
+
+def _quote_source(beat: dict[str, Any]) -> str:
+    """Read the model's declared quote source, or fail the reply.
+
+    A missing or unknown value is a reply-shape failure like any other, so it
+    gets the same one re-ask rather than a silent default.
+    """
+    value = str(beat.get("quote_source", "")).strip()
+    if value not in _QUOTE_SOURCES:
+        raise RecordError(
+            f"beat 'quote_source' must be one of {list(_QUOTE_SOURCES)}, got {value!r}"
+        )
+    return value
 
 
 def _prov(
@@ -268,19 +308,23 @@ class TranscriptLens:
     ) -> list[Record]:
         """One ASR call, with the same one-re-ask as the interpretation lens.
 
-        A malformed reply is normalized to ``RecordError`` in ``_asr_records``,
-        so it is a *reply-shape* failure the orchestrator can record — never a
-        raw ``KeyError`` that escapes the per-window loop and kills the video.
+        A reply-shape failure — a malformed record or a reply that is not JSON
+        at all (:class:`MalformedReply`) — is normalized to ``RecordError`` so
+        it is the orchestrator's *reply-shape* failure class, never a raw
+        ``KeyError`` that escapes the per-window loop and kills the video.
         """
         request = self._asr_request(media)
-        completion = backend.complete(request)
         try:
+            completion = backend.complete(request)
             return self._asr_records(completion.content, window, ctx)
-        except RecordError as exc:
+        except (RecordError, MalformedReply) as exc:
             retry = replace(
                 request, prompt=f"{request.prompt}\n\nYour previous reply was rejected: {exc}"
             )
-            return self._asr_records(backend.complete(retry).content, window, ctx)
+            try:
+                return self._asr_records(backend.complete(retry).content, window, ctx)
+            except MalformedReply as exc2:
+                raise RecordError(str(exc2)) from exc2
 
     def _asr_request(self, media: WindowMedia) -> Request:
         return Request(
@@ -330,10 +374,12 @@ class TranscriptLens:
             text = str(item.get("text", "")).strip()
             if not text:
                 continue
-            s = start + _ms(item, "start_ms")
-            e = min(start + _ms(item, "end_ms"), window[1])
-            if e <= s:
-                e = min(s + 1, window[1])
+            # Both ends clamp into the window; ``s`` stops one ms short of the
+            # end so ``e >= s + 1`` always holds and ``MsInterval`` never sees
+            # ``start > end`` — a timestamp past the clip is still an utterance
+            # the model heard, not a reason to fail the window.
+            s = min(max(start + _ms(item, "start_ms"), window[0]), window[1] - 1)
+            e = min(max(start + _ms(item, "end_ms"), s + 1), window[1])
             utterance_id = f"u_{ctx.video_id}_{_anchor(s, text)}"
             records.append(
                 (
@@ -471,6 +517,7 @@ _SCHEMA: dict[str, Any] = {
                     "start_ms": {"type": "integer"},
                     "end_ms": {"type": "integer"},
                     "quote": {"type": "string"},
+                    "quote_source": {"type": "string", "enum": list(_QUOTE_SOURCES)},
                     "incongruity": {"type": "string"},
                     "setup": {"type": "string"},
                     "payoff": {"type": "string"},
@@ -489,6 +536,7 @@ _SCHEMA: dict[str, Any] = {
                     "start_ms",
                     "end_ms",
                     "quote",
+                    "quote_source",
                     "incongruity",
                     "mechanism_labels",
                     "speech_visual_dependency",
@@ -527,6 +575,13 @@ class InterpretationLens:
             "This clip is one window of an edited gaming-commentary video. "
             f"It covers media time {window[0]}ms to {window[1]}ms.\n\n"
             f"Known spoken lines:\n{quotes or '(none supplied)'}\n\n"
+            "The known spoken lines above are the verbatim record. When a beat "
+            "is spoken, copy its quote exactly from those lines. The clip's own "
+            "audio may contain words the known lines censor or miss, and some "
+            "beats are purely visual — so every beat must also set quote_source "
+            "to say where its quote really came from: 'transcript' (copied from "
+            "the known lines), 'audio' (transcribed from the clip's audio), or "
+            "'visual' (a description of the picture).\n\n"
             "Identify each comedic beat. For each, give timestamps in "
             "milliseconds from the start of the clip, the verbatim quote, what "
             "is incongruous, the mechanism labels, the target of humor, whether "
@@ -554,6 +609,8 @@ class InterpretationLens:
         response: dict[str, Any],
         window: tuple[int, int],
         ctx: LensContext,
+        *,
+        utterances: tuple[BaseModel, ...],
     ) -> list[Record]:
         start = window[0]
         records: list[Record] = []
@@ -566,7 +623,10 @@ class InterpretationLens:
             quote = str(beat.get("quote", "")).strip()
             if not quote:
                 continue
-            s = min(max(start + _ms(beat, "start_ms"), window[0]), window[1])
+            declared = _quote_source(beat)
+            # ``s`` stops one ms short of the window end so ``e >= s + 1``
+            # always holds (see the ASR path for the same clamp).
+            s = min(max(start + _ms(beat, "start_ms"), window[0]), window[1] - 1)
             e = min(max(start + _ms(beat, "end_ms"), s + 1), window[1])
             alternates = [str(a) for a in beat.get("alternate_readings", []) if str(a).strip()]
             mechanisms = _vocab_list(
@@ -608,23 +668,28 @@ class InterpretationLens:
                 )
             )
             records.extend(self._decision(beat, s, e, ctx, quote, alternates))
-            records.append(
-                (
-                    "evidence_span",
-                    parse_record(
-                        "evidence_span",
-                        {
-                            "span_id": f"es_{claim_id}",
-                            "claim_id": claim_id,
-                            "source_id": ctx.source_id,
-                            "kind": "transcript_quote",
-                            "quote": quote,
-                            "start_ms": s,
-                            "end_ms": e,
-                        },
-                    ),
-                )
-            )
+            # ``transcript_quote`` is earned by verification, never assumed: a
+            # quote the supplied transcript cannot vouch for (the model read the
+            # clip's audio, or described the picture) is labelled by its real
+            # source, so the span never claims a provenance it does not have.
+            if _quote_in_transcript(quote, utterances):
+                kind = SpanKind.TRANSCRIPT_QUOTE
+            elif declared == "visual":
+                kind = SpanKind.FRAME
+            else:
+                kind = SpanKind.AUDIO_REGION
+            span: dict[str, Any] = {
+                "span_id": f"es_{claim_id}",
+                "claim_id": claim_id,
+                "source_id": ctx.source_id,
+                "kind": kind.value,
+                "quote": quote,
+                "start_ms": s,
+                "end_ms": e,
+            }
+            if kind is SpanKind.FRAME:
+                span["frame_index"] = int(s * ctx.frame_rate / 1000)
+            records.append(("evidence_span", parse_record("evidence_span", span)))
         return records
 
     def _decision(
@@ -674,12 +739,17 @@ class InterpretationLens:
         if backend is None:
             return []
         request = self.build(window, media, utterances)
-        completion = backend.complete(request)
         try:
-            return self.parse(completion.content, window, ctx)
-        except RecordError as exc:
+            completion = backend.complete(request)
+            return self.parse(completion.content, window, ctx, utterances=utterances)
+        except (RecordError, MalformedReply) as exc:
             retry = replace(
                 request,
                 prompt=f"{request.prompt}\n\nYour previous reply was rejected: {exc}",
             )
-            return self.parse(backend.complete(retry).content, window, ctx)
+            try:
+                return self.parse(
+                    backend.complete(retry).content, window, ctx, utterances=utterances
+                )
+            except MalformedReply as exc2:
+                raise RecordError(str(exc2)) from exc2

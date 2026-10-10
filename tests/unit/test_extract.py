@@ -14,7 +14,7 @@ from pathlib import Path
 
 import pytest
 
-from harness.backend import Completion, GateTripped, Request
+from harness.backend import Completion, GateTripped, MalformedReply, Request
 from harness.config import WindowingConfig, load_profile
 from harness.extract import extract_video
 from harness.persist import write_store
@@ -29,6 +29,7 @@ _BEAT = {
     "start_ms": 200,
     "end_ms": 800,
     "quote": "I almost feel bad",
+    "quote_source": "transcript",
     "incongruity": "mock-pity over carnage",
     "mechanism_labels": ["sarcasm"],
     "speech_visual_dependency": "needs the fight on screen",
@@ -208,6 +209,43 @@ def test_window_fails_when_reply_stays_invalid(test_video: Path, tmp_path: Path)
     assert window["failure_reason"].startswith("schema_rejected:")
     assert report.counts.get("comedy_beat", 0) == 0
     assert len(backend.interpretation_calls) == 2
+
+
+def test_non_json_reply_is_reasked_once_and_recovers(test_video: Path, tmp_path: Path) -> None:
+    """A non-JSON reply is a reply-shape failure, so it gets the one re-ask.
+
+    It cost real windows on the live ep2 run: ``MalformedReply`` escaped the
+    lens's ``except RecordError`` and failed the window on the first try.
+    """
+    backend = FakeBackend(
+        beats=[MalformedReply("model reply was not JSON: Unterminated string"), _BEAT_REPLY]
+    )
+    report = extract_video(test_video, tmp_path, _profile(), backend=backend, limit_windows=1)
+    assert report.counts.get("comedy_beat") == 1
+    assert not report.failures
+    assert len(backend.interpretation_calls) == 2
+    assert "rejected" in backend.interpretation_calls[1].prompt
+
+
+def test_window_fails_schema_rejected_when_reply_stays_non_json(
+    test_video: Path, tmp_path: Path
+) -> None:
+    backend = FakeBackend(beats=[MalformedReply("model reply was not JSON")])  # repeats
+    report = extract_video(test_video, tmp_path, _profile(), backend=backend, limit_windows=1)
+    window = _coverage(report)[0]
+    assert window["status"] == "failed"
+    # the same bucket as any other reply-shape failure, not ``extraction_error:``
+    assert window["failure_reason"].startswith("schema_rejected:")
+    assert len(backend.interpretation_calls) == 2
+
+
+def test_unverified_quote_span_is_audio_region(test_video: Path, tmp_path: Path) -> None:
+    """A quote the window's words cannot vouch for is not a transcript quote."""
+    beat = {**_BEAT, "quote": "words the transcript never had"}
+    backend = FakeBackend(beats=[{"beats": [beat]}])
+    report = extract_video(test_video, tmp_path, _profile(), backend=backend, limit_windows=1)
+    span = next(m for t, m in report.records if t == "evidence_span").model_dump()
+    assert span["kind"] == "audio_region"
 
 
 # --------------------------------------------------------------------------

@@ -184,8 +184,11 @@ det pass windows (plan_coverage)
   (asr) emits nothing; `InterpretationLens` may still run (visual-only).
 - **Missing ffmpeg / missing key**: fail fast at startup with an
   actionable message; nothing partially written.
-- **Network/timeout**: `urllib` timeout 180 s; a timeout counts as a
-  failed attempt under the same retry policy.
+- **Network/timeout**: `urllib` timeout 180 s; a timeout is *not* retried —
+  unlike a gate trip it says nothing probabilistic about the media, so the
+  window fails with `extraction_error:` and the pass moves on. A re-run of
+  the pass picks the window up again. (Empirically seen once on a live
+  window; the next run of that window succeeded.)
 
 ## Testing
 

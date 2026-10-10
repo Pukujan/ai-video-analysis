@@ -229,13 +229,21 @@ def measure_loudness(video: Path) -> Loudness:
     peak_match = _PEAK_RE.search(text)
     if not (i_match and lra_match and peak_match):
         raise AnalysisError(f"could not parse ebur128 summary for {video.name}")
+    summary = text[text.rfind("Summary:") :] if "Summary:" in text else text
+    # Keep only the measurement block; the trailing "[out#0/...] ... speed="
+    # line carries a per-run pointer and elapsed time.
+    measured_lines: list[str] = []
+    for line in summary.splitlines():
+        if line.lstrip().startswith("["):
+            break
+        if line.strip():
+            measured_lines.append(line.strip())
+    verbatim = " ".join(measured_lines)
     return Loudness(
         integrated_lufs=float(i_match.group(1)),
         loudness_range_lu=float(lra_match.group(1)),
         true_peak_dbfs=float(peak_match.group(1)),
-        raw="; ".join(
-            m.group(0).strip() for m in (i_match, lra_match, peak_match)
-        ),
+        raw=verbatim,
     )
 
 
@@ -373,6 +381,17 @@ def _prov(
     }
 
 
+def _anchor(start_ms: int, end_ms: int, evidence: str) -> str:
+    """A stable claim-id suffix from what the claim asserts, not its position.
+
+    Deriving the id from the content means inserting or dropping an earlier
+    detection never renumbers later claims, so an id keeps pointing at the same
+    observed moment across reruns and across detector changes.
+    """
+    seed = f"{start_ms}:{end_ms}:{evidence}"
+    return hashlib.sha256(seed.encode("utf-8")).hexdigest()[:10]
+
+
 def _emit(
     records: list[tuple[str, BaseModel]], record_type: str, data: dict[str, Any]
 ) -> None:
@@ -435,9 +454,12 @@ def build_records(
     )
 
     if loudness is not None:
+        # ebur128 measures the whole stream's loudness; it is not a mix action,
+        # so it is an Observation, and it asserts nothing about ducking,
+        # crossfades or interruption that it did not measure.
         _emit(
             records,
-            "audio_mix_event",
+            "observation",
             {
                 **_prov(
                     f"c_{video_id}_loudness",
@@ -449,24 +471,22 @@ def build_records(
                     EpistemicLevel.E1_OBSERVATION,
                     run_id,
                 ),
-                "ducking": False,
-                "crossfade": False,
-                "relative_loudness_db": loudness.integrated_lufs,
-                "dynamic_range_db": loudness.loudness_range_lu,
-                "interruption": False,
-                "sync_with_speech": False,
+                "modality": Modality.AUDIO.value,
+                "native_location": "audio stream 0 (whole stream)",
+                "measured": True,
+                "certainty": None,
             },
         )
     else:
         warnings.append("no audio stream; loudness not measured")
 
-    for index, span in enumerate(silences):
+    for span in silences:
         _emit(
             records,
             "audio_event",
             {
                 **_prov(
-                    f"c_{video_id}_silence_{index:04d}",
+                    f"c_{video_id}_silence_{_anchor(span.start_ms, span.end_ms, span.raw)}",
                     artifact_id,
                     span.start_ms,
                     span.end_ms,
@@ -482,7 +502,7 @@ def build_records(
         )
 
     frame_ms = max(1, int(round(1000.0 / probe.frame_rate))) if probe.frame_rate else 33
-    for index, cut in enumerate(cuts):
+    for cut in cuts:
         # A high score is very likely a hard editorial cut; a marginal one may
         # be camera motion or a game transition, so it stays "unknown".
         edit_type = "cut" if cut.score >= _CUT_SCORE_THRESHOLD else "unknown"
@@ -491,7 +511,7 @@ def build_records(
             "edit_event",
             {
                 **_prov(
-                    f"c_{video_id}_cut_{index:04d}",
+                    f"c_{video_id}_cut_{_anchor(cut.at_ms, cut.at_ms, cut.raw)}",
                     artifact_id,
                     cut.at_ms,
                     cut.at_ms,
@@ -522,16 +542,17 @@ def build_records(
         start, end = boundaries[index], boundaries[index + 1]
         if end <= start:
             continue
+        evidence = f"span between scene-score boundaries {start}ms..{end}ms"
         _emit(
             records,
             "shot_continuity",
             {
                 **_prov(
-                    f"c_{video_id}_span_{index:04d}",
+                    f"c_{video_id}_span_{_anchor(start, end, evidence)}",
                     artifact_id,
                     start,
                     end,
-                    f"span between scene-score boundaries {start}ms..{end}ms",
+                    evidence,
                     f"ffmpeg {_FFMPEG_VERSION} scene-score segmentation",
                     EpistemicLevel.E1_OBSERVATION,
                     run_id,
@@ -551,9 +572,13 @@ def build_records(
                 "video_id": video_id,
                 "start_ms": start,
                 "end_ms": end,
-                "modalities": [Modality.SPEECH.value, Modality.VISUAL.value, Modality.AUDIO.value],
+                # Only the modalities this deterministic pass actually exposed.
+                # Speech and comedy need a model and are not claimed here.
+                "modalities": [Modality.VISUAL.value, Modality.AUDIO.value],
                 "sampling_policy": (
-                    f"{_DEFAULT_WINDOW_MS}ms nominal, {_DEFAULT_OVERLAP_MS}ms overlap"
+                    f"{_DEFAULT_WINDOW_MS}ms nominal, {_DEFAULT_OVERLAP_MS}ms overlap; "
+                    "window covered by the whole-file deterministic pass, "
+                    "not a window-local model call"
                 ),
                 "run_id": run_id,
                 "status": "succeeded",

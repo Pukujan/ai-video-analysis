@@ -1,0 +1,30 @@
+{
+  "beats": [
+    {
+      "start_ms": 1000,
+      "end_ms": 6000,
+      "quote": "how sweet",
+      "incongruity": "mock-pious praise over violence",
+      "mechanism_labels": ["sarcasm", "irony"],
+      "target_of_humor": "the game",
+      "speech_visual_dependency": "needs the slaughter on screen",
+      "narrative_role": "isolated",
+      "decision": "react",
+      "decision_reason": "undercuts the literal praise",
+      "alternate_readings": ["genuine appreciation of the art design"]
+    },
+    {
+      "start_ms": 7000,
+      "end_ms": 9000,
+      "quote": "I take it back",
+      "incongruity": "retraction after enthusiasm",
+      "mechanism_labels": ["understatement"],
+      "target_of_humor": "self",
+      "speech_visual_dependency": "works from words alone",
+      "narrative_role": "escalation",
+      "decision": "speak",
+      "decision_reason": "marks the reversal",
+      "alternate_readings": ["literal retraction"]
+    }
+  ]
+}

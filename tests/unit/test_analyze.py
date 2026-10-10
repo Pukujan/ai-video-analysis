@@ -86,7 +86,7 @@ def _probe() -> MediaProbe:
 
 def test_measure_loudness_parses_summary(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(
-        "harness.analyze._run", lambda cmd: _completed(stderr=_EBUR128_STDERR)
+        "harness.analyze.run_ffmpeg", lambda cmd: _completed(stderr=_EBUR128_STDERR)
     )
     result = measure_loudness(Path("x.mp4"))
     assert result.integrated_lufs == -18.2
@@ -96,14 +96,14 @@ def test_measure_loudness_parses_summary(monkeypatch: pytest.MonkeyPatch) -> Non
 
 
 def test_measure_loudness_rejects_unparseable(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr("harness.analyze._run", lambda cmd: _completed(stderr="no summary"))
+    monkeypatch.setattr("harness.analyze.run_ffmpeg", lambda cmd: _completed(stderr="no summary"))
     with pytest.raises(AnalysisError):
         measure_loudness(Path("x.mp4"))
 
 
 def test_detect_silences_pairs_spans(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(
-        "harness.analyze._run", lambda cmd: _completed(stderr=_SILENCE_STDERR)
+        "harness.analyze.run_ffmpeg", lambda cmd: _completed(stderr=_SILENCE_STDERR)
     )
     spans = detect_silences(Path("x.mp4"), -32.0, 0.4)
     assert [(s.start_ms, s.end_ms) for s in spans] == [(0, 744), (5987, 6407)]
@@ -112,12 +112,12 @@ def test_detect_silences_pairs_spans(monkeypatch: pytest.MonkeyPatch) -> None:
 
 def test_detect_silences_ignores_unpaired_start(monkeypatch: pytest.MonkeyPatch) -> None:
     stderr = "[Parsed_silencedetect_0 @ 0x1] silence_start: 10.0\n"
-    monkeypatch.setattr("harness.analyze._run", lambda cmd: _completed(stderr=stderr))
+    monkeypatch.setattr("harness.analyze.run_ffmpeg", lambda cmd: _completed(stderr=stderr))
     assert detect_silences(Path("x.mp4"), -32.0, 0.4) == []
 
 
 def test_detect_scene_cuts_parses_scores(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr("harness.analyze._run", lambda cmd: _completed(stdout=_SCENE_STDOUT))
+    monkeypatch.setattr("harness.analyze.run_ffmpeg", lambda cmd: _completed(stdout=_SCENE_STDOUT))
     cuts = detect_scene_cuts(Path("x.mp4"), 0.4)
     assert [(c.at_ms, round(c.score, 3)) for c in cuts] == [(15115, 1.0), (25459, 0.419)]
 

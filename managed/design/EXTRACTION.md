@@ -113,7 +113,14 @@ namespace, so both passes for one video sit side by side.
   Schema requires per beat: `start_ms, end_ms, quote, incongruity,
   mechanism_labels, target_of_humor, speech_visual_dependency,
   narrative_role, decision, decision_reason, alternate_readings`.
-  Emits `comedy_beat` (E2), `response_decision` (E2), `evidence_span`
+  The three label fields carry their vocabulary as an `enum` **and** the
+  prompt names it: a bare `{"type": "string"}` let the model answer
+  `narrative_role` with a free-text description, so every live window
+  failed — the vocabulary has to be told to the model, not only checked
+  after it answers. A single invented `mechanism_labels` entry is dropped
+  rather than failing the beat; a list where *nothing* survives is a
+  rejected reply like any other shape failure. Emits `comedy_beat` (E2),
+  `response_decision` (E2), `evidence_span`
   (`kind="transcript_quote"`, verbatim `quote`) per claim. Every reply-shape
   failure — a missing field, a bad timestamp, an unknown vocabulary label —
   is normalized to `RecordError`, so one re-ask covers all of them.
@@ -191,7 +198,12 @@ det pass windows (plan_coverage)
   outcome there, as long as it is recorded terminal-and-failed with the
   provider's reason — that is the stability guarantee, not a failure.
   Comedic *quality* is judged by the human, via `review` records — the
-  human-feedback family — not by tests.
+  human-feedback family — not by tests. Its first run failed and earned
+  its keep: the model answered `narrative_role` with a free-text
+  description because the schema only said "a string", so *every* live
+  window failed while all 200 offline tests passed. Fixtures cannot see
+  what the model actually replies; that is the whole point of one live
+  test.
 
 ## Non-goals for this slice
 

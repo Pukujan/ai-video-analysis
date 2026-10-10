@@ -14,7 +14,7 @@ from pathlib import Path
 
 import pytest
 
-from harness.backend import Completion, GateTripped, MalformedReply, Request
+from harness.backend import BackendError, Completion, GateTripped, MalformedReply, Request
 from harness.config import WindowingConfig, load_profile
 from harness.extract import extract_video
 from harness.persist import write_store
@@ -225,6 +225,21 @@ def test_non_json_reply_is_reasked_once_and_recovers(test_video: Path, tmp_path:
     assert not report.failures
     assert len(backend.interpretation_calls) == 2
     assert "rejected" in backend.interpretation_calls[1].prompt
+
+
+def test_transport_error_marks_window_extraction_error(test_video: Path, tmp_path: Path) -> None:
+    """A transport error is *not* a reply-shape failure: no re-ask, its own bucket.
+
+    Pins the orchestrator's bucket split at the end of the path — only
+    ``RecordError``/``MalformedReply`` become ``schema_rejected:``; a plain
+    ``BackendError`` is ``extraction_error:`` and is tried exactly once.
+    """
+    backend = FakeBackend(beats=[BackendError("HTTP 500: internal server error")])
+    report = extract_video(test_video, tmp_path, _profile(), backend=backend, limit_windows=1)
+    window = _coverage(report)[0]
+    assert window["status"] == "failed"
+    assert window["failure_reason"].startswith("extraction_error:")
+    assert len(backend.interpretation_calls) == 1
 
 
 def test_window_fails_schema_rejected_when_reply_stays_non_json(

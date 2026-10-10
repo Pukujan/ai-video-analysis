@@ -107,10 +107,11 @@ namespace, so both passes for one video sit side by side.
     emits `utterance` (E1, `model_id` recorded,
     `alignment_method` = `"asr:ali/qwen3.8-omni-flash"`) +
     `word_alignment` (E1, interpolated across the model's span). A
-    malformed reply is normalized to `RecordError` and re-asked once,
-    exactly like the interpretation lens — a missing timestamp must fail
-    the *reply*, never raise a raw `KeyError` that escapes the per-window
-    loop and kills the whole video.
+    malformed reply — including one that is not JSON at all
+    (`MalformedReply` from the backend) — is normalized to `RecordError`
+    and re-asked once, exactly like the interpretation lens; a missing
+    timestamp must fail the *reply*, never raise a raw `KeyError` that
+    escapes the per-window loop and kills the whole video.
 - `DeliveryLens`: **no model, no network.** ffmpeg only: `silencedetect`
   for `pause_ms`, word-count/rate for `speech_rate_wpm`,
   `loudnorm` print for `energy_db`. Emits `vocal_delivery` (E1).
@@ -134,9 +135,12 @@ namespace, so both passes for one video sit side by side.
   `quote` is verifiably a (normalized) substring of the window's
   utterances; otherwise the reply's required `quote_source` field decides —
   `audio` → `audio_region`, `visual` → `frame` with a `frame_index`
-  computed from the beat start and the video frame rate, and a `transcript`
+  computed from the beat start and the video frame rate (`s * fps / 1000`),
+  pointing at the source video's frame at that instant — not an index into
+  the two JPEGs `WindowMedia.frames` samples per window, and a `transcript`
   declaration that fails verification resolves to `audio_region` without
-  costing a re-ask. The reason is empirical: the model is handed the
+  costing a re-ask — the fallback is "not transcript-vouched, presumed clip
+  audio", a source that is not proven, not a claim that it is the transcript. The reason is empirical: the model is handed the
   supplied lines *and* the mp4, and it quotes the clip's audio instead when
   the two differ — it de-censors a censored transcript (the supplied ep3
   transcript reads `gigantic [ __ ] dragon`, the clip's audio says
@@ -197,6 +201,12 @@ det pass windows (plan_coverage)
   `extraction_error:`.
 - **Other backend failure**: the window fails with `"extraction_error: "`
   + the error; the pass continues to the next window.
+- **A model timestamp outside the window**: clamped into it at both ends,
+  `start` stopping one ms short of `window[1]` so `end > start` always
+  holds, in both the ASR and interpretation paths. A hallucinated
+  timestamp is a clamped interval, never a window failure — the live ep2
+  run lost four windows to `interval start 165300 must not exceed end`
+  before the clamp was symmetric.
 - **A 200 that is not a completion**: two shapes reach the backend that
   are neither a completion nor an HTTP error, and both are handled by
   *text*, never by assumed shape. A body with no `choices` (a top-level
